@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Contact QA Clothing Factory for quotes and inquiries. Get in touch for school wear, corporate wear, PPE, and sports wear manufacturing.">
+    <title>Contact Us - QA Clothing Factory</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .contact-section {
+            padding: 4rem 0;
+        }
+        
+        .contact-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 3rem;
+        }
+        
+        .contact-info-card {
+            background: var(--gray-bg);
+            padding: 2rem;
+            border-radius: var(--border-radius-lg);
+            margin-bottom: 1.5rem;
+        }
+        
+        .contact-info-card i {
+            font-size: 2rem;
+            color: var(--accent);
+            margin-bottom: 1rem;
+        }
+        
+        .contact-form {
+            background: var(--white);
+            padding: 2rem;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            font-family: var(--font-body);
+            transition: var(--transition);
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(232,122,42,0.1);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .map-container {
+            margin-top: 2rem;
+            border-radius: var(--border-radius-lg);
+            overflow: hidden;
+        }
+        
+        .business-hours {
+            margin-top: 1rem;
+            padding: 1rem;
+            background: var(--white);
+            border-radius: var(--border-radius);
+        }
+        
+        @media (max-width: 992px) {
+            .contact-grid {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+        }
+        
+        @media (max-width: 576px) {
+            .form-row {
+                grid-template-columns: 1fr;
+                gap: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <a href="index.html">
+                    <span class="logo-icon"><img src="images/logo/logo.jpeg" width="60" height="60"></span>
+                    <div class="logo-text">
+                        <strong>QA</strong> Clothing Factory
+                        <small>Quality Assured Since 2014</small>
+                    </div>
+                </a>
+            </div>
+            <button class="mobile-menu-btn" aria-label="Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <nav class="navigation">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="quality.html">Quality</a></li>
+                    <li><a href="contact.html" class="active">Contact</a></li>
+                </ul>
+                <a href="contact.html" class="btn-primary">
+                    <i class="fas fa-file-invoice"></i> Request Quote
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="contact-section">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Get In Touch</span>
+                <h2>Let's Start Your <span class="highlight">Project</span></h2>
+                <p>Have a question or ready to start your order? We'd love to hear from you.</p>
+            </div>
+            
+            <div class="contact-grid">
+                <!-- Contact Information -->
+                <div>
+                    <div class="contact-info-card">
+                        <i class="fas fa-phone-alt"></i>
+                        <h3>Call Us</h3>
+                        <p><a href="tel:0781170652">078 117 0652</a></p>
+                        <p>Mon-Fri, 8am - 5pm</p>
+                    </div>
+                    
+                    <div class="contact-info-card">
+                        <i class="fas fa-envelope"></i>
+                        <h3>Email Us</h3>
+                        <p><a href="mailto:sales@clothingfactory.co">sales@clothingfactory.co</a></p>
+                        <p>We respond within 24 hours</p>
+                    </div>
+                    
+                    <div class="contact-info-card">
+                        <i class="fab fa-whatsapp"></i>
+                        <h3>WhatsApp Us</h3>
+                        <p><a href="https://wa.me/2781170652">078 117 0652</a></p>
+                        <p>Quick responses on WhatsApp</p>
+                    </div>
+                    
+                    <div class="contact-info-card">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <h3>Visit Our Factory</h3>
+                        <p>28 Boundary Street, Maraisburg<br>Roodepoort, 1709<br>South Africa</p>
+                    </div>
+                    
+                    <div class="map-container">
+                        <iframe 
+                            src="https://maps.google.com/maps?q=28+Boundary+Street+Maraisburg+Roodepoort&t=&z=15&ie=UTF8&iwloc=&output=embed" 
+                            width="100%" 
+                            height="250" 
+                            style="border:0;" 
+                            allowfullscreen="" 
+                            loading="lazy">
+                        </iframe>
+                    </div>
+                </div>
+                
+                <!-- Contact Form -->
+                <div class="contact-form">
+                    <h3>Send Us a Message</h3>
+                    <form id="contactForm" action="php/contact.php" method="POST">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="firstname">First Name *</label>
+                                <input type="text" id="firstname" name="firstname" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="lastname">Last Name *</label>
+                                <input type="text" id="lastname" name="lastname" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="phone">Phone Number *</label>
+                                <input type="tel" id="phone" name="phone" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email Address *</label>
+                                <input type="email" id="email" name="email" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="inquiry">Inquiry Type *</label>
+                            <select id="inquiry" name="inquiry_type" required>
+                                <option value="">Select an option</option>
+                                <option value="General">General Inquiry</option>
+                                <option value="Quote">Request a Quote</option>
+                                <option value="School Wear">School Wear</option>
+                                <option value="Corporate Wear">Corporate Wear</option>
+                                <option value="PPE">PPE / Workwear</option>
+                                <option value="Sports Wear">Sports Wear</option>
+                                <option value="Custom">Custom Manufacturing</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="message">Message *</label>
+                            <textarea id="message" name="message" rows="5" required></textarea>
+                        </div>
+                        
+                        <button type="submit" class="btn-primary" style="width: 100%;">
+                            <i class="fas fa-paper-plane"></i> Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Quote Request Form Section -->
+    <section style="background: var(--gray-bg); padding: 4rem 0;">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-tag">Request Quote</span>
+                <h2>Detailed <span class="highlight">Quote Request</span></h2>
+                <p>For bulk orders and custom manufacturing requirements</p>
+            </div>
+            
+            <div class="contact-form" style="max-width: 800px; margin: 0 auto;">
+                <form id="quoteForm" action="php/quote.php" method="POST">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="quote_name">Full Name *</label>
+                            <input type="text" id="quote_name" name="fullname" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="quote_company">Company Name</label>
+                            <input type="text" id="quote_company" name="company">
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="quote_email">Email *</label>
+                            <input type="email" id="quote_email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="quote_phone">Phone *</label>
+                            <input type="tel" id="quote_phone" name="phone" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="quote_category">Product Category *</label>
+                            <select id="quote_category" name="category" required>
+                                <option value="">Select Category</option>
+                                <option value="School Wear">School Wear</option>
+                                <option value="Corporate Wear">Corporate Wear</option>
+                                <option value="PPE / Workwear">PPE / Workwear</option>
+                                <option value="Sports Wear">Sports Wear</option>
+                                <option value="Casual Wear">Casual Wear</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="quote_quantity">Estimated Quantity *</label>
+                            <input type="text" id="quote_quantity" name="quantity" placeholder="e.g., 500 units" required>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="quote_deadline">Deadline *</label>
+                        <input type="text" id="quote_deadline" name="deadline" placeholder="e.g., 8 weeks, by March 2025" required>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="quote_specs">Specifications & Requirements *</label>
+                        <textarea id="quote_specs" name="specifications" rows="4" placeholder="Colors, sizing, branding, materials, etc." required></textarea>
+                    </div>
+                    
+                    <button type="submit" class="btn-primary" style="width: 100%;">
+                        <i class="fas fa-file-invoice"></i> Submit Quote Request
+                    </button>
+                </form>
+            </div>
+        </div>
+    </section>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-about">
+                    <div class="footer-logo"><strong>QA</strong> Clothing Factory</div>
+                    <p>Quality Assured manufacturers of premium garments for wholesalers, retailers, and trade-only companies.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="products.html">Products</a></li>
+                        <li><a href="about.html">About</a></li>
+                        <li><a href="quality.html">Quality</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h4>Contact Us</h4>
+                    <ul class="contact-info">
+                        <li><i class="fas fa-map-marker-alt"></i> 28 Boundary Street, Maraisburg, Roodepoort, 1709</li>
+                        <li><i class="fas fa-phone-alt"></i> <a href="tel:0781170652">078 117 0652</a></li>
+                        <li><i class="fas fa-envelope"></i> <a href="mailto:sales@clothingfactory.co">sales@clothingfactory.co</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 QA Clothing Factory. Quality Assured Since 2014.</p>
+            </div>
+        </div>
+    </footer>
+
+    <a href="https://wa.me/2781170652" class="whatsapp-float" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <script src="js/main.js"></script>
+</body>
+</html>

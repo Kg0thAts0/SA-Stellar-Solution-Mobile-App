@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="QA Clothing Factory's quality assurance process - from raw material inspection to final packaging. Every stitch matters.">
+    <title>Quality Assurance - QA Clothing Factory</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .quality-hero {
+            background: linear-gradient(135deg, var(--primary-dark), var(--primary));
+            color: white;
+            text-align: center;
+            padding: 4rem 0;
+        }
+        
+        .quality-hero h1 {
+            color: white;
+        }
+        
+        .quality-badge {
+            background: var(--accent);
+            color: white;
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .process-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            padding: 3rem 0;
+        }
+        
+        .process-step-card {
+            text-align: center;
+            padding: 2rem;
+            background: var(--gray-bg);
+            border-radius: var(--border-radius-lg);
+            transition: var(--transition);
+        }
+        
+        .process-step-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .step-icon {
+            width: 80px;
+            height: 80px;
+            background: var(--primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+        }
+        
+        .step-icon i {
+            font-size: 2rem;
+            color: white;
+        }
+        
+        .commitment-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2rem;
+            padding: 3rem 0;
+        }
+        
+        .commitment-item {
+            text-align: center;
+            padding: 2rem;
+        }
+        
+        .commitment-item i {
+            font-size: 3rem;
+            color: var(--success);
+            margin-bottom: 1rem;
+        }
+        
+        @media (max-width: 768px) {
+            .commitment-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <a href="index.html">
+                    <span class="logo-icon"><img src="images/logo/logo.jpeg" width="60" height="60"></span>
+                    <div class="logo-text">
+                        <strong>QA</strong> Clothing Factory
+                        <small>Quality Assured Since 2014</small>
+                    </div>
+                </a>
+            </div>
+            <button class="mobile-menu-btn" aria-label="Menu">
+                <i class="fas fa-bars"></i>
+            </button>
+            <nav class="navigation">
+                <ul>
+                    <li><a href="index.html">Home</a></li>
+                    <li><a href="products.html">Products</a></li>
+                    <li><a href="about.html">About</a></li>
+                    <li><a href="quality.html" class="active">Quality</a></li>
+                    <li><a href="contact.html">Contact</a></li>
+                </ul>
+                <a href="contact.html" class="btn-primary">
+                    <i class="fas fa-file-invoice"></i> Request Quote
+                </a>
+            </nav>
+        </div>
+    </header>
+
+    <section class="quality-hero">
+        <div class="container">
+            <div class="quality-badge">
+                <i class="fas fa-check-circle"></i> ISO Compliant Processes
+            </div>
+            <h1>Every Stitch <span class="highlight">Matters</span></h1>
+            <p style="max-width: 700px; margin: 1rem auto;">Our commitment to quality is embedded in every garment we manufacture.</p>
+        </div>
+    </section>
+
+    <div class="container">
+        <div class="process-grid">
+            <div class="process-step-card">
+                <div class="step-icon"><i class="fas fa-search"></i></div>
+                <h3>Raw Material Inspection</h3>
+                <p>Every fabric and component is inspected before production begins</p>
+            </div>
+            <div class="process-step-card">
+                <div class="step-icon"><i class="fas fa-cut"></i></div>
+                <h3>In-Process Quality Control</h3>
+                <p>Continuous monitoring during cutting, sewing, and assembly</p>
+            </div>
+            <div class="process-step-card">
+                <div class="step-icon"><i class="fas fa-clipboard-check"></i></div>
+                <h3>Final Inspection</h3>
+                <p>100% quality check before packaging and dispatch</p>
+            </div>
+        </div>
+    </div>
+
+    <section style="background: var(--gray-bg); padding: 4rem 0;">
+        <div class="container">
+            <h2 style="text-align: center;">Our Quality <span class="highlight">Commitment</span></h2>
+            <div class="commitment-grid">
+                <div class="commitment-item">
+                    <i class="fas fa-chart-line"></i>
+                    <h3>Defect Tracking System</h3>
+                    <p>Real-time monitoring and reporting of quality metrics</p>
+                </div>
+                <div class="commitment-item">
+                    <i class="fas fa-clock"></i>
+                    <h3>24/7 Supervision</h3>
+                    <p>Round-the-clock quality oversight on all production lines</p>
+                </div>
+                <div class="commitment-item">
+                    <i class="fas fa-certificate"></i>
+                    <h3>Industry Standards</h3>
+                    <p>Manufacturing to international quality specifications</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <div class="container" style="padding: 3rem 0;">
+        <div style="background: var(--success-light); padding: 2rem; border-radius: var(--border-radius-lg); text-align: center;">
+            <i class="fas fa-medal" style="font-size: 3rem; color: var(--success);"></i>
+            <h3 style="margin-top: 1rem;">100% Quality Guarantee</h3>
+            <p style="max-width: 600px; margin: 0.5rem auto;">We stand behind every product we create. If it doesn't meet our standards, it doesn't leave our factory.</p>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-about">
+                    <div class="footer-logo"><strong>QA</strong> Clothing Factory</div>
+                    <p>Quality Assured manufacturers of premium garments for wholesalers, retailers, and trade-only companies.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Quick Links</h4>
+                    <ul>
+                        <li><a href="index.html">Home</a></li>
+                        <li><a href="products.html">Products</a></li>
+                        <li><a href="about.html">About</a></li>
+                        <li><a href="quality.html">Quality</a></li>
+                        <li><a href="contact.html">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="footer-contact">
+                    <h4>Contact Us</h4>
+                    <ul class="contact-info">
+                        <li><i class="fas fa-map-marker-alt"></i> 28 Boundary Street, Maraisburg, Roodepoort, 1709</li>
+                        <li><i class="fas fa-phone-alt"></i> <a href="tel:0781170652">078 117 0652</a></li>
+                        <li><i class="fas fa-envelope"></i> <a href="mailto:sales@clothingfactory.co">sales@clothingfactory.co</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2026 QA Clothing Factory. Quality Assured Since 2014.</p>
+            </div>
+        </div>
+    </footer>
+
+    <a href="https://wa.me/2781170652" class="whatsapp-float" target="_blank">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
