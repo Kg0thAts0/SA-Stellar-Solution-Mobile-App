@@ -1,5 +1,9 @@
 @host = http://localhost:5048
 
+### ============================================================
+### QA CLOTHING FACTORY API TESTS
+### ============================================================
+
 
 ### ============================================================
 ### 1. DATABASE TEST
@@ -12,9 +16,13 @@ Accept: application/json
 ### ============================================================
 ### 2. ADMIN LOGIN
 ### ============================================================
+### Run this first.
+### Copy the JWT token from the response and use it below.
+### ============================================================
 
 POST {{host}}/api/auth/login
 Content-Type: application/json
+Accept: application/json
 
 {
   "email": "admin@qafactory.com",
@@ -24,6 +32,7 @@ Content-Type: application/json
 
 ### ============================================================
 ### 3. ADMIN DASHBOARD - NO TOKEN
+### ============================================================
 ### Expected: 401 Unauthorized
 ### ============================================================
 
@@ -33,10 +42,257 @@ Accept: application/json
 
 ### ============================================================
 ### 4. ADMIN DASHBOARD - WITH TOKEN
-### Replace YOUR_ADMIN_TOKEN with the token returned by login
 ### ============================================================
 
 GET {{host}}/api/admin/dashboard
 Accept: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjkiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiQWRtaW4gVXNlciIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImFkbWluQHFhZmFjdG9yeS5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbiIsImV4cCI6MTc5MDg3MzAyNiwiaXNzIjoiUUFDbG90aGluZ0ZhY3RvcnkuQVBJIiwiYXVkIjoiUUFDbG90aGluZ0ZhY3RvcnkuQ2xpZW50In0.BsRxeQkXQzCKCYSfFBPWRjNyp-ouhXTnruZjyLgLGDg
- 
+Authorization: Bearer YOUR_FRESH_ADMIN_TOKEN
+
+
+### ============================================================
+### 5. GET ALL EMPLOYEES
+### ============================================================
+
+GET {{host}}/api/admin/employees
+Accept: application/json
+Authorization: Bearer YOUR_FRESH_ADMIN_TOKEN
+
+
+### ============================================================
+### 6. DEACTIVATE EMPLOYEE
+### ============================================================
+### Active -> Inactive
+###
+### Change 12 to the EmployeeID you want to deactivate.
+### ============================================================
+
+PUT {{host}}/api/admin/employees/12/deactivate
+Accept: application/json
+Authorization: Bearer YOUR_FRESH_ADMIN_TOKEN
+
+
+### ============================================================
+### 7. REACTIVATE EMPLOYEE
+### ============================================================
+### Inactive -> Active
+###
+### Change 12 to the EmployeeID you want to reactivate.
+### ============================================================
+
+PUT {{host}}/api/admin/employees/12/reactivate
+Accept: application/json
+Authorization: Bearer YOUR_FRESH_ADMIN_TOKEN
+
+
+### ============================================================
+### 8. CHANGE EMPLOYEE ROLE
+### ============================================================
+### Example:
+### Change employee 12 to QualityController.
+### ============================================================
+
+PUT {{host}}/api/admin/employees/12/role
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer YOUR_FRESH_ADMIN_TOKEN
+
+{
+  "role": "QualityController"
+}
+
+
+### ============================================================
+### SHIFT TEAM MANAGEMENT
+### ============================================================
+###
+### Current active Supervisor:
+###
+### EmployeeID: 11
+### Name: Andile Xulu
+### Role: Supervisor
+### Status: Active
+###
+### IMPORTANT:
+### Employee 12 is currently a QualityController.
+### Do NOT use employee 12 as the Shift Team Supervisor.
+### ============================================================
+
+
+### ============================================================
+### 9. GET ACTIVE SUPERVISORS
+### ============================================================
+### Expected:
+### 200 OK
+###
+### Current result should include:
+### Andile Xulu - EmployeeID 11
+### ============================================================
+
+GET {{host}}/api/admin/shift-teams/supervisors
+Accept: application/json
+Authorization: Bearer YOUR_FRESH_ADMIN_TOKEN
+
+
+### ============================================================
+### 10. GET ALL SHIFT TEAMS
+### ============================================================
+### Expected:
+### 200 OK
+###
+### If there are no Shift Teams:
+### []
+### ============================================================
+
+GET {{host}}/api/admin/shift-teams
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjkiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiQWRtaW4gVXNlciIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImFkbWluQHFhZmFjdG9yeS5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbiIsImV4cCI6MTc5MTA0NDQwOCwiaXNzIjoiUUFDbG90aGluZ0ZhY3RvcnkuQVBJIiwiYXVkIjoiUUFDbG90aGluZ0ZhY3RvcnkuQ2xpZW50In0.cfGWdLksL-7uzmu6ohfW4azEm-ksivrDcOPufKa69TA
+
+
+### ============================================================
+### 11. CREATE SHIFT TEAM
+### ============================================================
+### Creates a new Shift Team.
+###
+### IMPORTANT:
+### SupervisorID 11 = Andile Xulu
+###
+### Valid shifts:
+### Morning
+### Afternoon
+### Night
+###
+### Expected:
+### 201 Created
+###
+### After creating the Shift Team, copy the ShiftTeamID
+### returned by the API.
+### ============================================================
+
+POST {{host}}/api/admin/shift-teams
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjkiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiQWRtaW4gVXNlciIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImFkbWluQHFhZmFjdG9yeS5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbiIsImV4cCI6MTc5MTA0NDQwOCwiaXNzIjoiUUFDbG90aGluZ0ZhY3RvcnkuQVBJIiwiYXVkIjoiUUFDbG90aGluZ0ZhY3RvcnkuQ2xpZW50In0.cfGWdLksL-7uzmu6ohfW4azEm-ksivrDcOPufKa69TA
+
+
+{
+  "shiftDate": "2026-10-03",
+  "shift": "Morning",
+  "supervisorID": 11,
+  "lineNumber": "Line 1",
+  "totalEmployees": 12,
+  "notes": "Morning production team"
+}
+
+
+### ============================================================
+### 12. GET SHIFT TEAM BY ID
+### ============================================================
+### IMPORTANT:
+### Replace 1 with the ShiftTeamID returned by CREATE.
+###
+### Example:
+### If CREATE returns ShiftTeamID = 3:
+###
+### GET {{host}}/api/admin/shift-teams/3
+###
+### Expected:
+### 200 OK
+### ============================================================
+
+GET {{host}}/api/admin/shift-teams/1
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjkiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiQWRtaW4gVXNlciIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImFkbWluQHFhZmFjdG9yeS5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbiIsImV4cCI6MTc5MTA0NDQwOCwiaXNzIjoiUUFDbG90aGluZ0ZhY3RvcnkuQVBJIiwiYXVkIjoiUUFDbG90aGluZ0ZhY3RvcnkuQ2xpZW50In0.cfGWdLksL-7uzmu6ohfW4azEm-ksivrDcOPufKa69TA
+
+
+
+### ============================================================
+### 13. UPDATE SHIFT TEAM
+### ============================================================
+### IMPORTANT:
+###
+### Replace 1 with the real ShiftTeamID.
+###
+### SupervisorID remains 11 because Andile Xulu
+### is currently the active Supervisor.
+###
+### This example changes:
+###
+### Morning   -> Afternoon
+### Line 1    -> Line 2
+### 12 staff  -> 15 staff
+###
+### Expected:
+### 200 OK
+### ============================================================
+
+PUT {{host}}/api/admin/shift-teams/1
+Content-Type: application/json
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjkiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiQWRtaW4gVXNlciIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImFkbWluQHFhZmFjdG9yeS5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbiIsImV4cCI6MTc5MTA0NDQwOCwiaXNzIjoiUUFDbG90aGluZ0ZhY3RvcnkuQVBJIiwiYXVkIjoiUUFDbG90aGluZ0ZhY3RvcnkuQ2xpZW50In0.cfGWdLksL-7uzmu6ohfW4azEm-ksivrDcOPufKa69TA
+
+{
+  "shiftDate": "2026-10-03",
+  "shift": "Afternoon",
+  "supervisorID": 11,
+  "lineNumber": "Line 2",
+  "totalEmployees": 15,
+  "notes": "Updated afternoon production team"
+}
+
+
+### ============================================================
+### 14. VERIFY UPDATED SHIFT TEAM
+### ============================================================
+### Replace 1 with the actual ShiftTeamID.
+### ============================================================
+
+GET {{host}}/api/admin/shift-teams/1
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjkiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiQWRtaW4gVXNlciIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImFkbWluQHFhZmFjdG9yeS5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbiIsImV4cCI6MTc5MTA0NDQwOCwiaXNzIjoiUUFDbG90aGluZ0ZhY3RvcnkuQVBJIiwiYXVkIjoiUUFDbG90aGluZ0ZhY3RvcnkuQ2xpZW50In0.cfGWdLksL-7uzmu6ohfW4azEm-ksivrDcOPufKa69TA
+
+
+### ============================================================
+### 15. GET ALL SHIFT TEAMS AFTER UPDATE
+### ============================================================
+
+GET {{host}}/api/admin/shift-teams
+Accept: application/json
+Authorization: Bearer YOUR_FRESH_ADMIN_TOKEN
+
+
+### ============================================================
+### 16. DELETE SHIFT TEAM
+### ============================================================
+### RUN THIS LAST.
+###
+### Replace 1 with the actual ShiftTeamID.
+###
+### Expected:
+### 200 OK
+### ============================================================
+
+DELETE {{host}}/api/admin/shift-teams/1
+Accept: application/json
+Authorization: Bearer YOUR_FRESH_ADMIN_TOKEN
+
+
+### ============================================================
+### 17. VERIFY SHIFT TEAM WAS DELETED
+### ============================================================
+### Replace 1 with the ShiftTeamID that you deleted.
+###
+### Expected:
+### 404 Not Found
+### ============================================================
+
+GET {{host}}/api/admin/shift-teams/1
+Accept: application/json
+Authorization: Bearer YOUR_FRESH_ADMIN_TOKEN
+
+### ============================================================
+### FACTORY OVERVIEW
+### ============================================================
+
+GET http://localhost:5048/api/admin/factory-overview
+Accept: application/json
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IjkiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1lIjoiQWRtaW4gVXNlciIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL2VtYWlsYWRkcmVzcyI6ImFkbWluQHFhZmFjdG9yeS5jb20iLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJBZG1pbiIsImV4cCI6MTc5MTA1NTc2OSwiaXNzIjoiUUFDbG90aGluZ0ZhY3RvcnkuQVBJIiwiYXVkIjoiUUFDbG90aGluZ0ZhY3RvcnkuQ2xpZW50In0.RXZ8z4WaPo4ANqx4NCHGFtfMFZUr-ZBKvGS8hIyV-C8
