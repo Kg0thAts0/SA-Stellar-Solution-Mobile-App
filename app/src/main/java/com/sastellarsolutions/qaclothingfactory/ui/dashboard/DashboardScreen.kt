@@ -53,75 +53,121 @@ import com.sastellarsolutions.qaclothingfactory.ui.theme.MontserratFontFamily
 
 @Composable
 fun DashboardScreen(
+
     user: User,
-    onLogout: () -> Unit = {}
+
+    onLogout: () -> Unit = {},
+
+    onUsersRolesClick: () -> Unit = {},
+
+    onShiftTeamsClick: () -> Unit = {},
+
+    onFactoryOverviewClick: () -> Unit = {},
+
+    onSystemActivityClick: () -> Unit = {},
+
+    onProductionOrdersClick: () -> Unit = {}
+
 ) {
 
     Column(
+
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFFF8F8F8))
+            .background(
+                Color(0xFFF8F8F8)
+            )
             .verticalScroll(
                 rememberScrollState()
             )
+
     ) {
+
 
         // ====================================================
         // HEADER
         // ====================================================
 
         Surface(
-            modifier = Modifier
-                .fillMaxWidth(),
-            color = Color.White,
-            shadowElevation = 2.dp
+
+            modifier =
+                Modifier.fillMaxWidth(),
+
+            color =
+                Color.White,
+
+            shadowElevation =
+                2.dp
+
         ) {
 
             Column(
+
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
                         horizontal = 24.dp,
                         vertical = 22.dp
                     )
+
             ) {
 
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth(),
+
+                    modifier =
+                        Modifier.fillMaxWidth(),
+
                     verticalAlignment =
                         Alignment.CenterVertically
+
                 ) {
 
                     Column(
+
                         modifier =
                             Modifier.weight(1f)
+
                     ) {
 
                         Text(
+
                             text =
                                 "QA CLOTHING FACTORY",
+
                             fontFamily =
                                 CinzelFontFamily,
+
                             fontWeight =
                                 FontWeight.SemiBold,
-                            fontSize = 16.sp,
-                            letterSpacing = 1.sp,
+
+                            fontSize =
+                                16.sp,
+
+                            letterSpacing =
+                                1.sp,
+
                             color =
                                 Color(0xFF111111)
                         )
+
 
                         Spacer(
                             modifier =
                                 Modifier.height(4.dp)
                         )
 
+
                         Text(
+
                             text =
                                 "Factory Management System",
+
                             fontFamily =
                                 MontserratFontFamily,
-                            fontSize = 10.sp,
+
+                            fontSize =
+                                10.sp,
+
                             color =
                                 Color(0xFF888888)
                         )
@@ -133,27 +179,39 @@ fun DashboardScreen(
                     // ========================================
 
                     Box(
+
                         modifier = Modifier
                             .size(55.dp)
                             .background(
-                                color = Color.White,
+
+                                color =
+                                    Color.White,
+
                                 shape =
-                                    RoundedCornerShape(14.dp)
+                                    RoundedCornerShape(
+                                        14.dp
+                                    )
                             ),
+
                         contentAlignment =
                             Alignment.Center
+
                     ) {
 
                         Image(
+
                             painter =
                                 painterResource(
                                     id =
                                         R.drawable.qa_clothing_factory_logo
                                 ),
+
                             contentDescription =
                                 "QA Clothing Factory Logo",
+
                             modifier =
                                 Modifier.size(50.dp),
+
                             contentScale =
                                 ContentScale.Fit
                         )
@@ -168,54 +226,78 @@ fun DashboardScreen(
         // ====================================================
 
         Column(
+
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(24.dp)
+
         ) {
 
             Text(
+
                 text =
                     "Welcome, ${user.firstName}",
+
                 fontFamily =
                     CinzelFontFamily,
+
                 fontWeight =
                     FontWeight.SemiBold,
-                fontSize = 25.sp,
+
+                fontSize =
+                    25.sp,
+
                 color =
                     Color(0xFF111111)
             )
+
 
             Spacer(
                 modifier =
                     Modifier.height(7.dp)
             )
 
+
             Text(
+
                 text =
                     user.role.displayName,
+
                 fontFamily =
                     MontserratFontFamily,
+
                 fontWeight =
                     FontWeight.SemiBold,
-                fontSize = 12.sp,
+
+                fontSize =
+                    12.sp,
+
                 color =
                     Color(0xFF555555)
             )
+
 
             Spacer(
                 modifier =
                     Modifier.height(5.dp)
             )
 
+
             Text(
+
                 text =
                     "Here's an overview of your factory workspace.",
+
                 fontFamily =
                     MontserratFontFamily,
-                fontSize = 12.sp,
+
+                fontSize =
+                    12.sp,
+
                 color =
                     Color(0xFF888888)
             )
+
 
             Spacer(
                 modifier =
@@ -231,23 +313,44 @@ fun DashboardScreen(
 
                 UserRole.ADMIN -> {
 
-                    AdminDashboardContent()
+                    AdminDashboardContent(
+
+                        onUsersRolesClick =
+                            onUsersRolesClick,
+
+                        onShiftTeamsClick =
+                            onShiftTeamsClick,
+
+                        onFactoryOverviewClick =
+                            onFactoryOverviewClick,
+
+                        onSystemActivityClick =
+                            onSystemActivityClick
+                    )
                 }
+
 
                 UserRole.PRODUCTION_MANAGER -> {
 
-                    ProductionManagerDashboardContent()
+                    ProductionManagerDashboardContent(
+
+                        onProductionOrdersClick =
+                            onProductionOrdersClick
+                    )
                 }
+
 
                 UserRole.QUALITY_CONTROLLER -> {
 
                     QualityControllerDashboardContent()
                 }
 
+
                 UserRole.INVENTORY_CLERK -> {
 
                     InventoryDashboardContent()
                 }
+
 
                 UserRole.SUPERVISOR -> {
 
@@ -261,31 +364,46 @@ fun DashboardScreen(
                     Modifier.height(35.dp)
             )
 
+
             HorizontalDivider(
                 color =
                     Color(0xFFE0E0E0)
             )
+
 
             Spacer(
                 modifier =
                     Modifier.height(20.dp)
             )
 
+
             Text(
-                text = "SIGN OUT",
+
+                text =
+                    "SIGN OUT",
+
                 fontFamily =
                     MontserratFontFamily,
+
                 fontWeight =
                     FontWeight.SemiBold,
-                fontSize = 11.sp,
-                letterSpacing = 1.sp,
+
+                fontSize =
+                    11.sp,
+
+                letterSpacing =
+                    1.sp,
+
                 color =
                     Color(0xFF555555),
+
                 modifier =
                     Modifier.clickable {
+
                         onLogout()
                     }
             )
+
 
             Spacer(
                 modifier =
@@ -301,33 +419,56 @@ fun DashboardScreen(
 // ============================================================
 
 @Composable
-private fun AdminDashboardContent() {
+private fun AdminDashboardContent(
+
+    onUsersRolesClick: () -> Unit,
+
+    onShiftTeamsClick: () -> Unit,
+
+    onFactoryOverviewClick: () -> Unit,
+
+    onSystemActivityClick: () -> Unit
+
+) {
 
     val context =
         LocalContext.current
 
+
     val sessionManager =
         remember(context) {
-            SessionManager(context)
+
+            SessionManager(
+                context
+            )
         }
+
 
     val repository =
         remember {
+
             AdminRepository()
         }
 
 
     var dashboard by remember {
+
         mutableStateOf<AdminDashboardResponse?>(
             null
         )
     }
 
+
     var isLoading by remember {
-        mutableStateOf(true)
+
+        mutableStateOf(
+            true
+        )
     }
 
+
     var errorMessage by remember {
+
         mutableStateOf<String?>(
             null
         )
@@ -340,19 +481,30 @@ private fun AdminDashboardContent() {
 
     LaunchedEffect(Unit) {
 
-        isLoading = true
-        errorMessage = null
+        isLoading =
+            true
+
+
+        errorMessage =
+            null
+
 
         val token =
-            sessionManager.getToken()
+            sessionManager
+                .getToken()
 
 
-        if (token.isNullOrBlank()) {
+        if (
+            token.isNullOrBlank()
+        ) {
 
             errorMessage =
                 "Your login session could not be found."
 
-            isLoading = false
+
+            isLoading =
+                false
+
 
             return@LaunchedEffect
         }
@@ -372,7 +524,9 @@ private fun AdminDashboardContent() {
                 dashboard =
                     result.dashboard
 
-                errorMessage = null
+
+                errorMessage =
+                    null
             }
 
 
@@ -380,19 +534,24 @@ private fun AdminDashboardContent() {
             .DashboardResult
             .Error -> {
 
-                dashboard = null
+                dashboard =
+                    null
+
 
                 errorMessage =
                     result.message
             }
         }
 
-        isLoading = false
+
+        isLoading =
+            false
     }
 
 
     DashboardSectionTitle(
-        title = "Administration"
+        title =
+            "Administration"
     )
 
 
@@ -403,22 +562,28 @@ private fun AdminDashboardContent() {
     if (isLoading) {
 
         Box(
+
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(
                     vertical = 35.dp
                 ),
+
             contentAlignment =
                 Alignment.Center
+
         ) {
 
             CircularProgressIndicator(
+
                 modifier =
                     Modifier.size(30.dp),
+
                 color =
                     Color(0xFF111111)
             )
         }
+
 
         return
     }
@@ -428,15 +593,20 @@ private fun AdminDashboardContent() {
     // ERROR
     // ========================================================
 
-    if (errorMessage != null) {
+    if (
+        errorMessage != null
+    ) {
 
         DashboardMessageCard(
+
             title =
                 "Unable to load dashboard",
+
             message =
                 errorMessage
                     ?: "An unexpected error occurred."
         )
+
 
         return
     }
@@ -446,14 +616,19 @@ private fun AdminDashboardContent() {
         dashboard
 
 
-    if (data == null) {
+    if (
+        data == null
+    ) {
 
         DashboardMessageCard(
+
             title =
                 "Dashboard unavailable",
+
             message =
                 "No dashboard information was returned by the server."
         )
+
 
         return
     }
@@ -464,29 +639,44 @@ private fun AdminDashboardContent() {
     // ========================================================
 
     DashboardSubheading(
-        title = "Employees"
+        title =
+            "Employees"
     )
 
+
     DashboardStatsRow(
+
         leftTitle =
             "Total Employees",
+
         leftValue =
-            data.totalEmployees.toString(),
+            data.totalEmployees
+                .toString(),
+
         rightTitle =
             "Active",
+
         rightValue =
-            data.activeEmployees.toString()
+            data.activeEmployees
+                .toString()
     )
 
+
     DashboardStatsRow(
+
         leftTitle =
             "Pending",
+
         leftValue =
-            data.pendingEmployees.toString(),
+            data.pendingEmployees
+                .toString(),
+
         rightTitle =
             "Inactive",
+
         rightValue =
-            data.inactiveEmployees.toString()
+            data.inactiveEmployees
+                .toString()
     )
 
 
@@ -501,27 +691,41 @@ private fun AdminDashboardContent() {
     // ========================================================
 
     DashboardSubheading(
-        title = "Inventory"
+        title =
+            "Inventory"
     )
 
+
     DashboardStatsRow(
+
         leftTitle =
             "Raw Materials",
+
         leftValue =
-            data.totalRawMaterials.toString(),
+            data.totalRawMaterials
+                .toString(),
+
         rightTitle =
             "Low Stock",
+
         rightValue =
-            data.lowStockMaterials.toString()
+            data.lowStockMaterials
+                .toString()
     )
 
+
     DashboardStatsRow(
+
         leftTitle =
             "Finished Goods",
+
         leftValue =
-            data.totalFinishedGoods.toString(),
+            data.totalFinishedGoods
+                .toString(),
+
         rightTitle =
             "Transactions",
+
         rightValue =
             data.totalInventoryTransactions
                 .toString()
@@ -539,31 +743,44 @@ private fun AdminDashboardContent() {
     // ========================================================
 
     DashboardSubheading(
-        title = "Production & Quality"
+        title =
+            "Production & Quality"
     )
 
+
     DashboardStatsRow(
+
         leftTitle =
             "Production Batches",
+
         leftValue =
             data.totalProductionBatches
                 .toString(),
+
         rightTitle =
             "Pending Quality",
+
         rightValue =
             data.pendingQualityChecks
                 .toString()
     )
 
+
     DashboardStatsRow(
+
         leftTitle =
             "Approved",
+
         leftValue =
-            data.approvedBatches.toString(),
+            data.approvedBatches
+                .toString(),
+
         rightTitle =
             "Rejected",
+
         rightValue =
-            data.rejectedBatches.toString()
+            data.rejectedBatches
+                .toString()
     )
 
 
@@ -578,35 +795,60 @@ private fun AdminDashboardContent() {
     // ========================================================
 
     DashboardSubheading(
-        title = "Factory Operations"
+        title =
+            "Factory Operations"
     )
 
+
     DashboardCard(
+
         title =
             "Shift Teams",
+
         description =
-            "${data.totalShiftTeams} shift team(s) currently recorded."
+            "${data.totalShiftTeams} shift team(s) currently recorded.",
+
+        onClick =
+            onShiftTeamsClick
     )
 
+
     DashboardCard(
+
         title =
             "Users & Roles",
+
         description =
-            "Manage employee accounts and system permissions."
+            "Manage employee accounts and system permissions.",
+
+        onClick =
+            onUsersRolesClick
     )
 
+
     DashboardCard(
+
         title =
             "Factory Overview",
+
         description =
-            "Production, quality and inventory statistics are connected to the live factory database."
+            "Production, quality and inventory statistics are connected to the live factory database.",
+
+        onClick =
+            onFactoryOverviewClick
     )
 
+
     DashboardCard(
+
         title =
             "System Activity",
+
         description =
-            "Monitor important activity across the platform."
+            "Monitor important activity across the platform.",
+
+        onClick =
+            onSystemActivityClick
     )
 }
 
@@ -617,36 +859,53 @@ private fun AdminDashboardContent() {
 
 @Composable
 private fun DashboardStatsRow(
+
     leftTitle: String,
+
     leftValue: String,
+
     rightTitle: String,
+
     rightValue: String
+
 ) {
 
     Row(
+
         modifier = Modifier
             .fillMaxWidth()
             .padding(
                 bottom = 12.dp
             ),
+
         horizontalArrangement =
-            Arrangement.spacedBy(12.dp)
+            Arrangement.spacedBy(
+                12.dp
+            )
+
     ) {
 
         DashboardStatCard(
+
             modifier =
                 Modifier.weight(1f),
+
             title =
                 leftTitle,
+
             value =
                 leftValue
         )
 
+
         DashboardStatCard(
+
             modifier =
                 Modifier.weight(1f),
+
             title =
                 rightTitle,
+
             value =
                 rightValue
         )
@@ -660,57 +919,91 @@ private fun DashboardStatsRow(
 
 @Composable
 private fun DashboardStatCard(
+
     modifier: Modifier = Modifier,
+
     title: String,
+
     value: String
+
 ) {
 
     Card(
-        modifier = modifier,
+
+        modifier =
+            modifier,
+
         shape =
-            RoundedCornerShape(16.dp),
+            RoundedCornerShape(
+                16.dp
+            ),
+
         colors =
             CardDefaults.cardColors(
                 containerColor =
                     Color.White
             ),
+
         elevation =
             CardDefaults.cardElevation(
                 defaultElevation =
                     1.dp
             )
+
     ) {
 
         Column(
+
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(18.dp)
+                .padding(
+                    18.dp
+                )
+
         ) {
 
             Text(
-                text = value,
+
+                text =
+                    value,
+
                 fontFamily =
                     CinzelFontFamily,
+
                 fontWeight =
                     FontWeight.SemiBold,
-                fontSize = 25.sp,
+
+                fontSize =
+                    25.sp,
+
                 color =
                     Color(0xFF111111)
             )
+
 
             Spacer(
                 modifier =
                     Modifier.height(6.dp)
             )
 
+
             Text(
-                text = title,
+
+                text =
+                    title,
+
                 fontFamily =
                     MontserratFontFamily,
+
                 fontWeight =
                     FontWeight.Medium,
-                fontSize = 10.sp,
-                lineHeight = 15.sp,
+
+                fontSize =
+                    10.sp,
+
+                lineHeight =
+                    15.sp,
+
                 color =
                     Color(0xFF777777)
             )
@@ -729,15 +1022,23 @@ private fun DashboardSubheading(
 ) {
 
     Text(
-        text = title,
+
+        text =
+            title,
+
         fontFamily =
             MontserratFontFamily,
+
         fontWeight =
             FontWeight.SemiBold,
-        fontSize = 13.sp,
+
+        fontSize =
+            13.sp,
+
         color =
             Color(0xFF333333)
     )
+
 
     Spacer(
         modifier =
@@ -752,55 +1053,86 @@ private fun DashboardSubheading(
 
 @Composable
 private fun DashboardMessageCard(
+
     title: String,
+
     message: String
+
 ) {
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth(),
+
+        modifier =
+            Modifier.fillMaxWidth(),
+
         shape =
-            RoundedCornerShape(16.dp),
+            RoundedCornerShape(
+                16.dp
+            ),
+
         colors =
             CardDefaults.cardColors(
                 containerColor =
                     Color.White
             ),
+
         elevation =
             CardDefaults.cardElevation(
                 defaultElevation =
                     1.dp
             )
+
     ) {
 
         Column(
+
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp)
+                .padding(
+                    20.dp
+                )
+
         ) {
 
             Text(
-                text = title,
+
+                text =
+                    title,
+
                 fontFamily =
                     MontserratFontFamily,
+
                 fontWeight =
                     FontWeight.SemiBold,
-                fontSize = 14.sp,
+
+                fontSize =
+                    14.sp,
+
                 color =
                     Color(0xFF111111)
             )
+
 
             Spacer(
                 modifier =
                     Modifier.height(7.dp)
             )
 
+
             Text(
-                text = message,
+
+                text =
+                    message,
+
                 fontFamily =
                     MontserratFontFamily,
-                fontSize = 11.sp,
-                lineHeight = 17.sp,
+
+                fontSize =
+                    11.sp,
+
+                lineHeight =
+                    17.sp,
+
                 color =
                     Color(0xFF777777)
             )
@@ -814,26 +1146,58 @@ private fun DashboardMessageCard(
 // ============================================================
 
 @Composable
-private fun ProductionManagerDashboardContent() {
+private fun ProductionManagerDashboardContent(
+
+    onProductionOrdersClick: () -> Unit
+
+) {
 
     DashboardSectionTitle(
-        title = "Production"
+        title =
+            "Production"
     )
 
+
+    // ========================================================
+    // PRODUCTION ORDERS
+    // ========================================================
+
     DashboardCard(
-        title = "Production Orders",
+
+        title =
+            "Production Orders",
+
         description =
-            "Manage and monitor factory production orders."
+            "Manage and monitor factory production orders.",
+
+        onClick =
+            onProductionOrdersClick
     )
 
+
+    // ========================================================
+    // PRODUCTION PROGRESS
+    // ========================================================
+
     DashboardCard(
-        title = "Production Progress",
+
+        title =
+            "Production Progress",
+
         description =
             "Track current manufacturing progress."
     )
 
+
+    // ========================================================
+    // PRODUCTION REPORTS
+    // ========================================================
+
     DashboardCard(
-        title = "Production Reports",
+
+        title =
+            "Production Reports",
+
         description =
             "Review production performance and output."
     )
@@ -848,23 +1212,36 @@ private fun ProductionManagerDashboardContent() {
 private fun QualityControllerDashboardContent() {
 
     DashboardSectionTitle(
-        title = "Quality Control"
+        title =
+            "Quality Control"
     )
 
+
     DashboardCard(
-        title = "Quality Inspections",
+
+        title =
+            "Quality Inspections",
+
         description =
             "Record and review product inspections."
     )
 
+
     DashboardCard(
-        title = "Defects",
+
+        title =
+            "Defects",
+
         description =
             "Capture and monitor product defects."
     )
 
+
     DashboardCard(
-        title = "Quality Reports",
+
+        title =
+            "Quality Reports",
+
         description =
             "Review quality-control performance."
     )
@@ -879,23 +1256,36 @@ private fun QualityControllerDashboardContent() {
 private fun InventoryDashboardContent() {
 
     DashboardSectionTitle(
-        title = "Inventory"
+        title =
+            "Inventory"
     )
 
+
     DashboardCard(
-        title = "Inventory Stock",
+
+        title =
+            "Inventory Stock",
+
         description =
             "Monitor materials and available stock."
     )
 
+
     DashboardCard(
-        title = "Stock Movements",
+
+        title =
+            "Stock Movements",
+
         description =
             "Record stock received and stock issued."
     )
 
+
     DashboardCard(
-        title = "Low Stock",
+
+        title =
+            "Low Stock",
+
         description =
             "Identify materials requiring replenishment."
     )
@@ -910,23 +1300,36 @@ private fun InventoryDashboardContent() {
 private fun SupervisorDashboardContent() {
 
     DashboardSectionTitle(
-        title = "Supervision"
+        title =
+            "Supervision"
     )
 
+
     DashboardCard(
-        title = "Assigned Work",
+
+        title =
+            "Assigned Work",
+
         description =
             "View and monitor assigned production work."
     )
 
+
     DashboardCard(
-        title = "Team Progress",
+
+        title =
+            "Team Progress",
+
         description =
             "Monitor work completed by the production team."
     )
 
+
     DashboardCard(
-        title = "Daily Updates",
+
+        title =
+            "Daily Updates",
+
         description =
             "Record and review factory-floor progress."
     )
@@ -943,16 +1346,26 @@ private fun DashboardSectionTitle(
 ) {
 
     Text(
-        text = title.uppercase(),
+
+        text =
+            title.uppercase(),
+
         fontFamily =
             MontserratFontFamily,
+
         fontWeight =
             FontWeight.SemiBold,
-        fontSize = 10.sp,
-        letterSpacing = 1.4.sp,
+
+        fontSize =
+            10.sp,
+
+        letterSpacing =
+            1.4.sp,
+
         color =
             Color(0xFF777777)
     )
+
 
     Spacer(
         modifier =
@@ -967,60 +1380,110 @@ private fun DashboardSectionTitle(
 
 @Composable
 private fun DashboardCard(
+
     title: String,
-    description: String
+
+    description: String,
+
+    onClick: (() -> Unit)? = null
+
 ) {
 
     Card(
+
         modifier = Modifier
             .fillMaxWidth()
             .padding(
                 bottom = 12.dp
+            )
+            .then(
+
+                if (
+                    onClick != null
+                ) {
+
+                    Modifier.clickable {
+
+                        onClick()
+                    }
+
+                } else {
+
+                    Modifier
+                }
             ),
+
         shape =
-            RoundedCornerShape(16.dp),
+            RoundedCornerShape(
+                16.dp
+            ),
+
         colors =
             CardDefaults.cardColors(
                 containerColor =
                     Color.White
             ),
+
         elevation =
             CardDefaults.cardElevation(
                 defaultElevation =
                     1.dp
             )
+
     ) {
 
         Column(
+
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp)
+                .padding(
+                    20.dp
+                )
+
         ) {
 
             Text(
-                text = title,
+
+                text =
+                    title,
+
                 fontFamily =
                     MontserratFontFamily,
+
                 fontWeight =
                     FontWeight.SemiBold,
-                fontSize = 14.sp,
+
+                fontSize =
+                    14.sp,
+
                 color =
                     Color(0xFF111111)
             )
+
 
             Spacer(
                 modifier =
                     Modifier.height(6.dp)
             )
 
+
             Text(
-                text = description,
+
+                text =
+                    description,
+
                 fontFamily =
                     MontserratFontFamily,
+
                 fontWeight =
                     FontWeight.Normal,
-                fontSize = 11.sp,
-                lineHeight = 17.sp,
+
+                fontSize =
+                    11.sp,
+
+                lineHeight =
+                    17.sp,
+
                 color =
                     Color(0xFF777777)
             )

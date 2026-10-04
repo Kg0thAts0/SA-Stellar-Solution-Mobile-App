@@ -2,32 +2,18 @@ package com.sastellarsolutions.qaclothingfactory.data.remote.network
 
 import com.sastellarsolutions.qaclothingfactory.data.remote.api.AdminApiService
 import com.sastellarsolutions.qaclothingfactory.data.remote.api.AuthApiService
+import com.sastellarsolutions.qaclothingfactory.data.remote.api.ProductionApiService
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
+
 object RetrofitClient {
 
     // ========================================================
     // LOCAL DEVELOPMENT API
-    // ========================================================
-    //
-    // Physical Android phone + ADB reverse:
-    //
-    // Phone:
-    // http://127.0.0.1:5048
-    //
-    //              ↓
-    //
-    // USB / ADB reverse
-    //
-    //              ↓
-    //
-    // ASP.NET Core:
-    // http://localhost:5048
-    //
     // ========================================================
 
     private const val BASE_URL =
@@ -42,12 +28,12 @@ object RetrofitClient {
         HttpLoggingInterceptor().apply {
 
             level =
-                HttpLoggingInterceptor.Level.BASIC
+                HttpLoggingInterceptor.Level.BODY
         }
 
 
     // ========================================================
-    // OKHTTP
+    // OKHTTP CLIENT
     // ========================================================
 
     private val httpClient =
@@ -76,8 +62,12 @@ object RetrofitClient {
 
     private val retrofit =
         Retrofit.Builder()
-            .baseUrl(BASE_URL)
-            .client(httpClient)
+            .baseUrl(
+                BASE_URL
+            )
+            .client(
+                httpClient
+            )
             .addConverterFactory(
                 GsonConverterFactory.create()
             )
@@ -101,5 +91,15 @@ object RetrofitClient {
     val adminApi: AdminApiService =
         retrofit.create(
             AdminApiService::class.java
+        )
+
+
+    // ========================================================
+    // PRODUCTION API
+    // ========================================================
+
+    val productionApi: ProductionApiService =
+        retrofit.create(
+            ProductionApiService::class.java
         )
 }
