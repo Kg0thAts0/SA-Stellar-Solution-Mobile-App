@@ -66,7 +66,33 @@ fun DashboardScreen(
 
     onSystemActivityClick: () -> Unit = {},
 
-    onProductionOrdersClick: () -> Unit = {}
+    onProductionOrdersClick: () -> Unit = {},
+
+    onProductionProgressClick: () -> Unit = {},
+
+    onProductionReportsClick: () -> Unit = {},
+
+    onQualityInspectionsClick: () -> Unit = {},
+
+    onQualityDefectsClick: () -> Unit = {},
+
+    onQualityReportsClick: () -> Unit = {},
+
+    onInventoryStockClick: () -> Unit = {},
+
+    onStockMovementsClick: () -> Unit = {},
+
+    onLowStockClick: () -> Unit = {},
+
+    onAssignedWorkClick: () -> Unit = {},
+
+    onTeamProgressClick: () -> Unit = {},
+
+    onDailyUpdatesClick: () -> Unit = {},
+
+    onSettingsClick: () -> Unit = {},
+
+    onHelpSupportClick: () -> Unit = {}
 
 ) {
 
@@ -335,26 +361,60 @@ fun DashboardScreen(
                     ProductionManagerDashboardContent(
 
                         onProductionOrdersClick =
-                            onProductionOrdersClick
+                            onProductionOrdersClick,
+
+                        onProductionProgressClick =
+                            onProductionProgressClick,
+
+                        onProductionReportsClick =
+                            onProductionReportsClick
                     )
                 }
 
 
                 UserRole.QUALITY_CONTROLLER -> {
 
-                    QualityControllerDashboardContent()
+                    QualityControllerDashboardContent(
+                        onQualityInspectionsClick =
+                            onQualityInspectionsClick,
+
+                        onQualityDefectsClick =
+                            onQualityDefectsClick,
+
+                        onQualityReportsClick =
+                            onQualityReportsClick
+                    )
                 }
 
 
                 UserRole.INVENTORY_CLERK -> {
 
-                    InventoryDashboardContent()
+                    InventoryDashboardContent(
+                        onInventoryStockClick =
+                            onInventoryStockClick,
+
+                        onStockMovementsClick =
+                            onStockMovementsClick,
+
+                        onLowStockClick =
+                            onLowStockClick
+                    )
                 }
 
 
                 UserRole.SUPERVISOR -> {
 
-                    SupervisorDashboardContent()
+                    SupervisorDashboardContent(
+
+                        onAssignedWorkClick =
+                            onAssignedWorkClick,
+
+                        onTeamProgressClick =
+                            onTeamProgressClick,
+
+                        onDailyUpdatesClick =
+                            onDailyUpdatesClick
+                    )
                 }
             }
 
@@ -374,6 +434,44 @@ fun DashboardScreen(
             Spacer(
                 modifier =
                     Modifier.height(20.dp)
+            )
+
+
+            DashboardCard(
+
+                title =
+                    "Settings",
+
+                description =
+                    "Manage notification preferences and application settings.",
+
+                onClick =
+                    onSettingsClick
+            )
+
+
+            Spacer(
+                modifier =
+                    Modifier.height(8.dp)
+            )
+
+
+            DashboardCard(
+
+                title =
+                    "Help & Support",
+
+                description =
+                    "Get guidance for using the application and solving common problems.",
+
+                onClick =
+                    onHelpSupportClick
+            )
+
+
+            Spacer(
+                modifier =
+                    Modifier.height(8.dp)
             )
 
 
@@ -996,9 +1094,7 @@ private fun DashboardStatCard(
                     MontserratFontFamily,
 
                 fontWeight =
-                    FontWeight.Medium,
-
-                fontSize =
+                    FontWeight.Medium,fontSize =
                     10.sp,
 
                 lineHeight =
@@ -1148,7 +1244,11 @@ private fun DashboardMessageCard(
 @Composable
 private fun ProductionManagerDashboardContent(
 
-    onProductionOrdersClick: () -> Unit
+    onProductionOrdersClick: () -> Unit,
+
+    onProductionProgressClick: () -> Unit,
+
+    onProductionReportsClick: () -> Unit
 
 ) {
 
@@ -1185,7 +1285,10 @@ private fun ProductionManagerDashboardContent(
             "Production Progress",
 
         description =
-            "Track current manufacturing progress."
+            "Track current manufacturing progress.",
+
+        onClick =
+            onProductionProgressClick
     )
 
 
@@ -1199,7 +1302,10 @@ private fun ProductionManagerDashboardContent(
             "Production Reports",
 
         description =
-            "Review production performance and output."
+            "Review production performance and output.",
+
+        onClick =
+            onProductionReportsClick
     )
 }
 
@@ -1209,7 +1315,15 @@ private fun ProductionManagerDashboardContent(
 // ============================================================
 
 @Composable
-private fun QualityControllerDashboardContent() {
+private fun QualityControllerDashboardContent(
+
+    onQualityInspectionsClick: () -> Unit,
+
+    onQualityDefectsClick: () -> Unit,
+
+    onQualityReportsClick: () -> Unit
+
+) {
 
     DashboardSectionTitle(
         title =
@@ -1223,7 +1337,10 @@ private fun QualityControllerDashboardContent() {
             "Quality Inspections",
 
         description =
-            "Record and review product inspections."
+            "Record and review product inspections.",
+
+        onClick =
+            onQualityInspectionsClick
     )
 
 
@@ -1233,7 +1350,10 @@ private fun QualityControllerDashboardContent() {
             "Defects",
 
         description =
-            "Capture and monitor product defects."
+            "Capture and monitor product defects.",
+
+        onClick =
+            onQualityDefectsClick
     )
 
 
@@ -1243,7 +1363,10 @@ private fun QualityControllerDashboardContent() {
             "Quality Reports",
 
         description =
-            "Review quality-control performance."
+            "Review quality-control performance.",
+
+        onClick =
+            onQualityReportsClick
     )
 }
 
@@ -1253,7 +1376,15 @@ private fun QualityControllerDashboardContent() {
 // ============================================================
 
 @Composable
-private fun InventoryDashboardContent() {
+private fun InventoryDashboardContent(
+
+    onInventoryStockClick: () -> Unit,
+
+    onStockMovementsClick: () -> Unit,
+
+    onLowStockClick: () -> Unit
+
+) {
 
     DashboardSectionTitle(
         title =
@@ -1267,7 +1398,10 @@ private fun InventoryDashboardContent() {
             "Inventory Stock",
 
         description =
-            "Monitor materials and available stock."
+            "Monitor materials and available stock.",
+
+        onClick =
+            onInventoryStockClick
     )
 
 
@@ -1277,7 +1411,10 @@ private fun InventoryDashboardContent() {
             "Stock Movements",
 
         description =
-            "Record stock received and stock issued."
+            "Record stock received and stock issued.",
+
+        onClick =
+            onStockMovementsClick
     )
 
 
@@ -1287,17 +1424,27 @@ private fun InventoryDashboardContent() {
             "Low Stock",
 
         description =
-            "Identify materials requiring replenishment."
+            "Identify materials requiring replenishment.",
+
+        onClick =
+            onLowStockClick
     )
 }
-
 
 // ============================================================
 // SUPERVISOR
 // ============================================================
 
 @Composable
-private fun SupervisorDashboardContent() {
+private fun SupervisorDashboardContent(
+
+    onAssignedWorkClick: () -> Unit,
+
+    onTeamProgressClick: () -> Unit,
+
+    onDailyUpdatesClick: () -> Unit
+
+) {
 
     DashboardSectionTitle(
         title =
@@ -1311,7 +1458,10 @@ private fun SupervisorDashboardContent() {
             "Assigned Work",
 
         description =
-            "View and monitor assigned production work."
+            "View and monitor assigned production work.",
+
+        onClick =
+            onAssignedWorkClick
     )
 
 
@@ -1321,7 +1471,10 @@ private fun SupervisorDashboardContent() {
             "Team Progress",
 
         description =
-            "Monitor work completed by the production team."
+            "Monitor work completed by the production team.",
+
+        onClick =
+            onTeamProgressClick
     )
 
 
@@ -1331,7 +1484,10 @@ private fun SupervisorDashboardContent() {
             "Daily Updates",
 
         description =
-            "Record and review factory-floor progress."
+            "Record and review factory-floor progress.",
+
+        onClick =
+            onDailyUpdatesClick
     )
 }
 

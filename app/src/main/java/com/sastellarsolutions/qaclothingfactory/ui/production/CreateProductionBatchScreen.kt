@@ -95,6 +95,10 @@ fun CreateProductionBatchScreen(
         )
     }
 
+    var targetQuantity by remember {
+        mutableStateOf("")
+    }
+
     var quantityProduced by remember {
         mutableStateOf("")
     }
@@ -192,6 +196,10 @@ fun CreateProductionBatchScreen(
         mutableStateOf(false)
     }
 
+    var statusExpanded by remember {
+        mutableStateOf(false)
+    }
+
 
     val shifts =
         listOf(
@@ -199,6 +207,18 @@ fun CreateProductionBatchScreen(
             "Afternoon",
             "Night"
         )
+
+    val productionStatuses =
+        listOf(
+            "Planned",
+            "In Progress",
+            "Completed",
+            "Cancelled"
+        )
+
+    var selectedProductionStatus by remember {
+        mutableStateOf("Planned")
+    }
 
 
     // ========================================================
@@ -527,6 +547,43 @@ fun CreateProductionBatchScreen(
 
 
             // =================================================
+            // TARGET QUANTITY
+            // =================================================
+
+            OutlinedTextField(
+
+                value =
+                    targetQuantity,
+
+                onValueChange = {
+                    targetQuantity =
+                        it.filter { character ->
+                            character.isDigit() ||
+                                    character == '.'
+                        }
+                },
+
+                label = {
+                    Text(
+                        "Target Quantity"
+                    )
+                },
+
+                keyboardOptions =
+                    KeyboardOptions(
+                        keyboardType =
+                            KeyboardType.Decimal
+                    ),
+
+                singleLine =
+                    true,
+
+                modifier =
+                    Modifier.fillMaxWidth()
+            )
+
+
+            // =================================================
             // QUANTITIES
             // =================================================
 
@@ -612,6 +669,88 @@ fun CreateProductionBatchScreen(
                     modifier =
                         Modifier.weight(1f)
                 )
+            }
+
+
+            // =================================================
+            // PRODUCTION STATUS
+            // =================================================
+
+            ExposedDropdownMenuBox(
+
+                expanded =
+                    statusExpanded,
+
+                onExpandedChange = {
+                    statusExpanded =
+                        !statusExpanded
+                }
+
+            ) {
+
+                OutlinedTextField(
+
+                    value =
+                        selectedProductionStatus,
+
+                    onValueChange = {},
+
+                    readOnly =
+                        true,
+
+                    label = {
+                        Text(
+                            "Production Status"
+                        )
+                    },
+
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults
+                            .TrailingIcon(
+                                expanded =
+                                    statusExpanded
+                            )
+                    },
+
+                    modifier =
+                        Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
+                )
+
+
+                ExposedDropdownMenu(
+
+                    expanded =
+                        statusExpanded,
+
+                    onDismissRequest = {
+                        statusExpanded =
+                            false
+                    }
+
+                ) {
+
+                    productionStatuses.forEach { status ->
+
+                        DropdownMenuItem(
+
+                            text = {
+                                Text(
+                                    status
+                                )
+                            },
+
+                            onClick = {
+                                selectedProductionStatus =
+                                    status
+
+                                statusExpanded =
+                                    false
+                            }
+                        )
+                    }
+                }
             }
 
 
@@ -1363,6 +1502,11 @@ fun CreateProductionBatchScreen(
                         selectedProduct
 
 
+                    val target =
+                        targetQuantity
+                            .toDoubleOrNull()
+
+
                     val produced =
                         quantityProduced
                             .toDoubleOrNull()
@@ -1403,11 +1547,19 @@ fun CreateProductionBatchScreen(
                         }
 
 
-                        produced == null ||
-                                produced <= 0.0 -> {
+                        target == null ||
+                                target <= 0.0 -> {
 
                             errorMessage =
-                                "Quantity produced must be greater than zero."
+                                "Target quantity must be greater than zero."
+                        }
+
+
+                        produced == null ||
+                                produced < 0.0 -> {
+
+                            errorMessage =
+                                "Quantity produced cannot be negative."
                         }
 
 
@@ -1524,6 +1676,11 @@ fun CreateProductionBatchScreen(
             selectedProduct
 
 
+        val target =
+            targetQuantity
+                .toDoubleOrNull()
+
+
         val produced =
             quantityProduced
                 .toDoubleOrNull()
@@ -1550,6 +1707,7 @@ fun CreateProductionBatchScreen(
 
         if (
             product == null ||
+            target == null ||
             produced == null ||
             defective == null ||
             supervisor == null
@@ -1601,6 +1759,9 @@ fun CreateProductionBatchScreen(
                     productID =
                         product.productID,
 
+                    targetQuantity =
+                        target,
+
                     quantityProduced =
                         produced,
 
@@ -1621,6 +1782,9 @@ fun CreateProductionBatchScreen(
 
                     supervisorID =
                         supervisor.employeeID,
+
+                    productionStatus =
+                        selectedProductionStatus,
 
                     startTime =
                         startTime,
