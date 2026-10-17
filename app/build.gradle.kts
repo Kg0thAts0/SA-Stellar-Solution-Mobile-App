@@ -61,9 +61,17 @@ dependencies {
     // Material icons for Email, Lock, Visibility, VisibilityOff, etc.
     implementation("androidx.compose.material:material-icons-extended")
 
-
     // Unit testing
     testImplementation(libs.junit)
+
+    // Android framework unit testing
+    testImplementation("org.robolectric:robolectric:4.16")
+    testImplementation("androidx.test:core-ktx:1.7.0")
+
+    // Unit testing
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("androidx.test:core:1.7.0")
+    testImplementation("androidx.test:core-ktx:1.7.0")
 
 
     // Android testing

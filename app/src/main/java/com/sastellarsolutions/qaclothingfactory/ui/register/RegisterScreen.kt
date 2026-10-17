@@ -23,6 +23,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
@@ -32,6 +33,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,14 +47,29 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sastellarsolutions.qaclothingfactory.R
+import com.sastellarsolutions.qaclothingfactory.data.repository.AuthRepository
 import com.sastellarsolutions.qaclothingfactory.ui.theme.CinzelFontFamily
 import com.sastellarsolutions.qaclothingfactory.ui.theme.MontserratFontFamily
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @Composable
 fun RegisterScreen(
     onLoginClick: () -> Unit = {}
 ) {
+
+    // ========================================================
+    // REPOSITORY + COROUTINE
+    // ========================================================
+
+    val authRepository =
+        remember {
+            AuthRepository()
+        }
+
+    val coroutineScope =
+        rememberCoroutineScope()
+
 
     // ========================================================
     // FORM STATE
@@ -111,6 +128,27 @@ fun RegisterScreen(
         mutableStateOf<String?>(null)
     }
 
+    var registrationError by remember {
+        mutableStateOf<String?>(null)
+    }
+
+
+    // ========================================================
+    // REGISTRATION STATE
+    // ========================================================
+
+    var isLoading by remember {
+        mutableStateOf(false)
+    }
+
+    var registrationSuccessful by remember {
+        mutableStateOf(false)
+    }
+
+    var successMessage by remember {
+        mutableStateOf("")
+    }
+
 
     // ========================================================
     // SCREEN ANIMATION
@@ -141,12 +179,13 @@ fun RegisterScreen(
         AnimatedVisibility(
             visible = contentVisible,
 
-            enter = fadeIn() +
-                    slideInVertically(
-                        initialOffsetY = { fullHeight ->
-                            fullHeight / 10
-                        }
-                    )
+            enter =
+                fadeIn() +
+                        slideInVertically(
+                            initialOffsetY = { fullHeight ->
+                                fullHeight / 10
+                            }
+                        )
         ) {
 
             Column(
@@ -174,15 +213,17 @@ fun RegisterScreen(
                 // =================================================
 
                 Image(
-                    painter = painterResource(
-                        id = R.drawable.qa_clothing_factory_logo
-                    ),
+                    painter =
+                        painterResource(
+                            id =
+                                R.drawable.qa_clothing_factory_logo
+                        ),
 
                     contentDescription =
                         "QA Clothing Factory Logo",
 
-                    modifier = Modifier
-                        .size(90.dp)
+                    modifier =
+                        Modifier.size(90.dp)
                 )
 
 
@@ -288,10 +329,16 @@ fun RegisterScreen(
                         firstName = it
 
                         firstNameError = null
+
+                        registrationError = null
                     },
 
                     modifier =
                         Modifier.fillMaxWidth(),
+
+                    enabled =
+                        !isLoading &&
+                                !registrationSuccessful,
 
                     label = {
 
@@ -342,10 +389,16 @@ fun RegisterScreen(
                         lastName = it
 
                         lastNameError = null
+
+                        registrationError = null
                     },
 
                     modifier =
                         Modifier.fillMaxWidth(),
+
+                    enabled =
+                        !isLoading &&
+                                !registrationSuccessful,
 
                     label = {
 
@@ -396,10 +449,16 @@ fun RegisterScreen(
                         email = it
 
                         emailError = null
+
+                        registrationError = null
                     },
 
                     modifier =
                         Modifier.fillMaxWidth(),
+
+                    enabled =
+                        !isLoading &&
+                                !registrationSuccessful,
 
                     label = {
 
@@ -469,10 +528,16 @@ fun RegisterScreen(
                         password = it
 
                         passwordError = null
+
+                        registrationError = null
                     },
 
                     modifier =
                         Modifier.fillMaxWidth(),
+
+                    enabled =
+                        !isLoading &&
+                                !registrationSuccessful,
 
                     label = {
 
@@ -507,7 +572,11 @@ fun RegisterScreen(
 
                             modifier =
                                 Modifier
-                                    .clickable {
+                                    .clickable(
+                                        enabled =
+                                            !isLoading &&
+                                                    !registrationSuccessful
+                                    ) {
 
                                         passwordVisible =
                                             !passwordVisible
@@ -571,10 +640,16 @@ fun RegisterScreen(
                         confirmPassword = it
 
                         confirmPasswordError = null
+
+                        registrationError = null
                     },
 
                     modifier =
                         Modifier.fillMaxWidth(),
+
+                    enabled =
+                        !isLoading &&
+                                !registrationSuccessful,
 
                     label = {
 
@@ -610,7 +685,11 @@ fun RegisterScreen(
 
                             modifier =
                                 Modifier
-                                    .clickable {
+                                    .clickable(
+                                        enabled =
+                                            !isLoading &&
+                                                    !registrationSuccessful
+                                    ) {
 
                                         confirmPasswordVisible =
                                             !confirmPasswordVisible
@@ -657,6 +736,46 @@ fun RegisterScreen(
                 }
 
 
+                // =================================================
+                // BACKEND ERROR
+                // =================================================
+
+                if (registrationError != null) {
+
+                    Spacer(
+                        modifier =
+                            Modifier.height(16.dp)
+                    )
+
+                    RegistrationMessage(
+                        message =
+                            registrationError ?: "",
+
+                        isError = true
+                    )
+                }
+
+
+                // =================================================
+                // SUCCESS MESSAGE
+                // =================================================
+
+                if (registrationSuccessful) {
+
+                    Spacer(
+                        modifier =
+                            Modifier.height(16.dp)
+                    )
+
+                    RegistrationMessage(
+                        message =
+                            successMessage,
+
+                        isError = false
+                    )
+                }
+
+
                 Spacer(
                     modifier = Modifier.height(25.dp)
                 )
@@ -669,7 +788,9 @@ fun RegisterScreen(
                 Button(
                     onClick = {
 
-                        // Reset errors
+                        // =========================================
+                        // RESET ERRORS
+                        // =========================================
 
                         firstNameError = null
 
@@ -681,6 +802,16 @@ fun RegisterScreen(
 
                         confirmPasswordError = null
 
+                        registrationError = null
+
+
+                        // =========================================
+                        // VALIDATION
+                        // =========================================
+
+                        var validationPassed =
+                            true
+
 
                         // -----------------------------------------
                         // FIRST NAME
@@ -690,6 +821,9 @@ fun RegisterScreen(
 
                             firstNameError =
                                 "Please enter your first name."
+
+                            validationPassed =
+                                false
                         }
 
 
@@ -701,6 +835,9 @@ fun RegisterScreen(
 
                             lastNameError =
                                 "Please enter your last name."
+
+                            validationPassed =
+                                false
                         }
 
 
@@ -713,6 +850,9 @@ fun RegisterScreen(
                             emailError =
                                 "Please enter your work email."
 
+                            validationPassed =
+                                false
+
                         } else if (
                             !Patterns.EMAIL_ADDRESS
                                 .matcher(
@@ -723,6 +863,9 @@ fun RegisterScreen(
 
                             emailError =
                                 "Please enter a valid email address."
+
+                            validationPassed =
+                                false
                         }
 
 
@@ -735,12 +878,18 @@ fun RegisterScreen(
                             passwordError =
                                 "Please enter a password."
 
+                            validationPassed =
+                                false
+
                         } else if (
                             password.length < 8
                         ) {
 
                             passwordError =
                                 "Password must contain at least 8 characters."
+
+                            validationPassed =
+                                false
                         }
 
 
@@ -753,39 +902,107 @@ fun RegisterScreen(
                             confirmPasswordError =
                                 "Please confirm your password."
 
+                            validationPassed =
+                                false
+
                         } else if (
                             password != confirmPassword
                         ) {
 
                             confirmPasswordError =
                                 "Passwords do not match."
+
+                            validationPassed =
+                                false
                         }
 
 
-                        // -----------------------------------------
-                        // REGISTRATION
-                        // -----------------------------------------
+                        // =========================================
+                        // CALL BACKEND
+                        // =========================================
 
-                        if (
-                            firstNameError == null &&
-                            lastNameError == null &&
-                            emailError == null &&
-                            passwordError == null &&
-                            confirmPasswordError == null
-                        ) {
+                        if (validationPassed) {
 
-                            /*
-                             * Validation passed.
-                             *
-                             * Later this will send the
-                             * registration request to our
-                             * authentication/backend service.
-                             *
-                             * We are intentionally not creating
-                             * fake accounts locally.
-                             */
+                            isLoading = true
+
+
+                            coroutineScope.launch {
+
+                                when (
+                                    val result =
+                                        authRepository.register(
+                                            firstName =
+                                                firstName,
+
+                                            lastName =
+                                                lastName,
+
+                                            email =
+                                                email,
+
+                                            password =
+                                                password,
+
+                                            confirmPassword =
+                                                confirmPassword
+                                        )
+                                ) {
+
+                                    is AuthRepository
+                                    .RegisterResult
+                                    .Success -> {
+
+                                        isLoading =
+                                            false
+
+                                        registrationSuccessful =
+                                            true
+
+                                        registrationError =
+                                            null
+
+
+                                        // =================================
+                                        // CLEAR SENSITIVE PASSWORD FIELDS
+                                        // =================================
+
+                                        password = ""
+
+                                        confirmPassword = ""
+
+                                        passwordVisible =
+                                            false
+
+                                        confirmPasswordVisible =
+                                            false
+
+
+                                        successMessage =
+                                            result.response.message
+                                    }
+
+
+                                    is AuthRepository
+                                    .RegisterResult
+                                    .Error -> {
+
+                                        isLoading =
+                                            false
+
+                                        registrationSuccessful =
+                                            false
+
+                                        registrationError =
+                                            result.message
+                                    }
+                                }
+                            }
                         }
                     },
+
+                    enabled =
+                        !isLoading &&
+                                !registrationSuccessful,
 
                     modifier = Modifier
                         .fillMaxWidth()
@@ -796,28 +1013,106 @@ fun RegisterScreen(
 
                     colors =
                         ButtonDefaults.buttonColors(
-
                             containerColor =
                                 Color(0xFF111111),
 
                             contentColor =
+                                Color.White,
+
+                            disabledContainerColor =
+                                Color(0xFFCCCCCC),
+
+                            disabledContentColor =
                                 Color.White
                         )
                 ) {
 
-                    Text(
-                        text = "CREATE ACCOUNT",
+                    if (isLoading) {
 
-                        fontFamily =
-                            MontserratFontFamily,
+                        CircularProgressIndicator(
+                            modifier =
+                                Modifier.size(22.dp),
 
-                        fontWeight =
-                            FontWeight.SemiBold,
+                            strokeWidth =
+                                2.dp,
 
-                        fontSize = 13.sp,
+                            color =
+                                Color.White
+                        )
 
-                        letterSpacing = 1.sp
+                    } else {
+
+                        Text(
+                            text =
+                                if (registrationSuccessful) {
+                                    "ACCOUNT CREATED"
+                                } else {
+                                    "CREATE ACCOUNT"
+                                },
+
+                            fontFamily =
+                                MontserratFontFamily,
+
+                            fontWeight =
+                                FontWeight.SemiBold,
+
+                            fontSize = 13.sp,
+
+                            letterSpacing = 1.sp
+                        )
+                    }
+                }
+
+
+                // =================================================
+                // GO TO LOGIN AFTER SUCCESS
+                // =================================================
+
+                if (registrationSuccessful) {
+
+                    Spacer(
+                        modifier =
+                            Modifier.height(14.dp)
                     )
+
+                    Button(
+                        onClick = {
+
+                            onLoginClick()
+                        },
+
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(50.dp),
+
+                        shape =
+                            RoundedCornerShape(14.dp),
+
+                        colors =
+                            ButtonDefaults.buttonColors(
+                                containerColor =
+                                    Color.White,
+
+                                contentColor =
+                                    Color(0xFF111111)
+                            )
+                    ) {
+
+                        Text(
+                            text =
+                                "RETURN TO SIGN IN",
+
+                            fontFamily =
+                                MontserratFontFamily,
+
+                            fontWeight =
+                                FontWeight.SemiBold,
+
+                            fontSize = 11.sp,
+
+                            letterSpacing = 1.sp
+                        )
+                    }
                 }
 
 
@@ -830,45 +1125,51 @@ fun RegisterScreen(
                 // LOGIN LINK
                 // =================================================
 
-                Row(
-                    verticalAlignment =
-                        Alignment.CenterVertically
-                ) {
+                if (!registrationSuccessful) {
 
-                    Text(
-                        text =
-                            "Already have an account? ",
+                    Row(
+                        verticalAlignment =
+                            Alignment.CenterVertically
+                    ) {
 
-                        fontFamily =
-                            MontserratFontFamily,
+                        Text(
+                            text =
+                                "Already have an account? ",
 
-                        fontSize = 12.sp,
+                            fontFamily =
+                                MontserratFontFamily,
 
-                        color =
-                            Color(0xFF777777)
-                    )
+                            fontSize = 12.sp,
+
+                            color =
+                                Color(0xFF777777)
+                        )
 
 
-                    Text(
-                        text = "Sign In",
+                        Text(
+                            text = "Sign In",
 
-                        fontFamily =
-                            MontserratFontFamily,
+                            fontFamily =
+                                MontserratFontFamily,
 
-                        fontWeight =
-                            FontWeight.SemiBold,
+                            fontWeight =
+                                FontWeight.SemiBold,
 
-                        fontSize = 12.sp,
+                            fontSize = 12.sp,
 
-                        color =
-                            Color(0xFF111111),
+                            color =
+                                Color(0xFF111111),
 
-                        modifier =
-                            Modifier.clickable {
+                            modifier =
+                                Modifier.clickable(
+                                    enabled =
+                                        !isLoading
+                                ) {
 
-                                onLoginClick()
-                            }
-                    )
+                                    onLoginClick()
+                                }
+                        )
+                    }
                 }
 
 
@@ -926,7 +1227,7 @@ private fun registerFieldColors() =
 
 
 // ============================================================
-// ERROR MESSAGE
+// FIELD ERROR MESSAGE
 // ============================================================
 
 @Composable
@@ -954,4 +1255,55 @@ private fun ErrorMessage(
                 .colorScheme
                 .error
     )
+}
+
+
+// ============================================================
+// REGISTRATION RESULT MESSAGE
+// ============================================================
+
+@Composable
+private fun RegistrationMessage(
+    message: String,
+    isError: Boolean
+) {
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(
+                color =
+                    if (isError) {
+                        Color(0xFFFFF2F2)
+                    } else {
+                        Color(0xFFF2F7F2)
+                    },
+
+                shape =
+                    RoundedCornerShape(12.dp)
+            )
+            .padding(14.dp)
+    ) {
+
+        Text(
+            text = message,
+
+            fontFamily =
+                MontserratFontFamily,
+
+            fontWeight =
+                FontWeight.Medium,
+
+            fontSize = 11.sp,
+
+            lineHeight = 17.sp,
+
+            color =
+                if (isError) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    Color(0xFF2E5D34)
+                }
+        )
+    }
 }
