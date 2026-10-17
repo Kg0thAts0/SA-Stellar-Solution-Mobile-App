@@ -33,9 +33,11 @@ var connectionString =
     );
 
 
-if (string.IsNullOrWhiteSpace(
+if (
+    string.IsNullOrWhiteSpace(
         connectionString
-    ))
+    )
+)
 {
     throw new InvalidOperationException(
         "Database connection string 'DefaultConnection' was not found."
@@ -60,10 +62,25 @@ builder.Services.AddDbContext<ApplicationDbContext>(
 
 
 // ============================================================
-// TOKEN SERVICE
+// HTTP CONTEXT ACCESSOR
+// ============================================================
+//
+// Required by SystemActivityService so it can read:
+// - authenticated EmployeeID from JWT
+// - request IP address
+//
+// ============================================================
+
+builder.Services.AddHttpContextAccessor();
+
+
+// ============================================================
+// APPLICATION SERVICES
 // ============================================================
 
 builder.Services.AddScoped<TokenService>();
+
+builder.Services.AddScoped<SystemActivityService>();
 
 
 // ============================================================
@@ -86,7 +103,11 @@ var jwtAudience =
     ];
 
 
-if (string.IsNullOrWhiteSpace(jwtKey))
+if (
+    string.IsNullOrWhiteSpace(
+        jwtKey
+    )
+)
 {
     throw new InvalidOperationException(
         "JWT signing key is missing."
@@ -98,36 +119,42 @@ builder.Services
     .AddAuthentication(
         JwtBearerDefaults.AuthenticationScheme
     )
-    .AddJwtBearer(options =>
-    {
-        options.TokenValidationParameters =
-            new TokenValidationParameters
-            {
-                ValidateIssuer = true,
+    .AddJwtBearer(
+        options =>
+        {
+            options.TokenValidationParameters =
+                new TokenValidationParameters
+                {
+                    ValidateIssuer =
+                        true,
 
-                ValidateAudience = true,
+                    ValidateAudience =
+                        true,
 
-                ValidateLifetime = true,
+                    ValidateLifetime =
+                        true,
 
-                ValidateIssuerSigningKey = true,
+                    ValidateIssuerSigningKey =
+                        true,
 
-                ValidIssuer =
-                    jwtIssuer,
+                    ValidIssuer =
+                        jwtIssuer,
 
-                ValidAudience =
-                    jwtAudience,
+                    ValidAudience =
+                        jwtAudience,
 
-                IssuerSigningKey =
-                    new SymmetricSecurityKey(
-                        Encoding.UTF8.GetBytes(
-                            jwtKey
-                        )
-                    ),
+                    IssuerSigningKey =
+                        new SymmetricSecurityKey(
+                            Encoding.UTF8.GetBytes(
+                                jwtKey
+                            )
+                        ),
 
-                ClockSkew =
-                    TimeSpan.Zero
-            };
-    });
+                    ClockSkew =
+                        TimeSpan.Zero
+                };
+        }
+    );
 
 
 // ============================================================
@@ -138,7 +165,7 @@ builder.Services.AddAuthorization();
 
 
 // ============================================================
-// BUILD
+// BUILD APPLICATION
 // ============================================================
 
 var app =
@@ -149,7 +176,9 @@ var app =
 // DEVELOPMENT
 // ============================================================
 
-if (app.Environment.IsDevelopment())
+if (
+    app.Environment.IsDevelopment()
+)
 {
     app.MapOpenApi();
 }
@@ -166,7 +195,8 @@ app.UseHttpsRedirection();
 // AUTHENTICATION
 // ============================================================
 //
-// Authentication MUST come before authorization.
+// Authentication MUST run before authorization.
+//
 // ============================================================
 
 app.UseAuthentication();
@@ -182,7 +212,7 @@ app.MapControllers();
 
 
 // ============================================================
-// START
+// START APPLICATION
 // ============================================================
 
 app.Run();

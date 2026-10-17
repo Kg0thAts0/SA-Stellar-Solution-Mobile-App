@@ -13,7 +13,7 @@ namespace QAClothingFactory.API.Data
 
 
         // ====================================================
-        // EXISTING DATABASE TABLES
+        // DATABASE TABLES
         // ====================================================
 
         public DbSet<Employee> Employees { get; set; }
@@ -29,6 +29,10 @@ namespace QAClothingFactory.API.Data
         public DbSet<LoginAttempt> LoginAttempts { get; set; }
 
         public DbSet<ShiftTeam> ShiftTeams { get; set; }
+
+        public DbSet<SystemActivity> SystemActivities { get; set; }
+
+        public DbSet<PasswordReset> PasswordResets { get; set; }
 
 
         // ====================================================
@@ -73,12 +77,27 @@ namespace QAClothingFactory.API.Data
                     .HasMaxLength(255)
                     .IsRequired();
 
+
+                // =============================================
+                // ROLE
+                // =============================================
+                //
+                // Newly registered employees have no role.
+                // The administrator assigns the role before
+                // approving the employee.
+                // =============================================
+
                 entity.Property(e => e.Role)
                     .HasColumnName("Role")
                     .HasColumnType(
                         "enum('Admin','ProductionManager','QualityController','InventoryClerk','Supervisor')"
                     )
-                    .IsRequired();
+                    .IsRequired(false);
+
+
+                // =============================================
+                // EMPLOYEE STATUS
+                // =============================================
 
                 entity.Property(e => e.EmployeeStatus)
                     .HasColumnName("EmployeeStatus")
@@ -431,6 +450,135 @@ namespace QAClothingFactory.API.Data
 
                 entity.Property(e => e.CreatedAt)
                     .HasColumnName("CreatedAt");
+            });
+
+
+            // =================================================
+            // SYSTEM ACTIVITY
+            // =================================================
+
+            modelBuilder.Entity<SystemActivity>(entity =>
+            {
+                entity.ToTable("system_activity");
+
+                entity.HasKey(e => e.ActivityID);
+
+                entity.Property(e => e.ActivityID)
+                    .HasColumnName("ActivityID");
+
+                entity.Property(e => e.EmployeeID)
+                    .HasColumnName("EmployeeID");
+
+                entity.Property(e => e.ActionType)
+                    .HasColumnName("ActionType")
+                    .HasMaxLength(100)
+                    .IsRequired();
+
+                entity.Property(e => e.Description)
+                    .HasColumnName("Description")
+                    .HasMaxLength(500)
+                    .IsRequired();
+
+                entity.Property(e => e.EntityType)
+                    .HasColumnName("EntityType")
+                    .HasMaxLength(100);
+
+                entity.Property(e => e.EntityID)
+                    .HasColumnName("EntityID");
+
+                entity.Property(e => e.ActivityTime)
+                    .HasColumnName("ActivityTime");
+
+                entity.Property(e => e.IPAddress)
+                    .HasColumnName("IPAddress")
+                    .HasMaxLength(45);
+
+                entity.HasOne(e => e.Employee)
+                    .WithMany()
+                    .HasForeignKey(e => e.EmployeeID)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+
+            // =================================================
+            // PASSWORD RESET
+            // =================================================
+
+            modelBuilder.Entity<PasswordReset>(entity =>
+            {
+                entity.ToTable("password_reset");
+
+                entity.HasKey(
+                    e => e.PasswordResetID
+                );
+
+                entity.Property(
+                    e => e.PasswordResetID
+                )
+                    .HasColumnName(
+                        "PasswordResetID"
+                    );
+
+
+                entity.Property(
+                    e => e.EmployeeID
+                )
+                    .HasColumnName(
+                        "EmployeeID"
+                    )
+                    .IsRequired();
+
+
+                entity.Property(
+                    e => e.TokenHash
+                )
+                    .HasColumnName(
+                        "TokenHash"
+                    )
+                    .HasMaxLength(255)
+                    .IsRequired();
+
+
+                entity.Property(
+                    e => e.ExpiresAt
+                )
+                    .HasColumnName(
+                        "ExpiresAt"
+                    )
+                    .IsRequired();
+
+
+                entity.Property(
+                    e => e.UsedAt
+                )
+                    .HasColumnName(
+                        "UsedAt"
+                    );
+
+
+                entity.Property(
+                    e => e.CreatedAt
+                )
+                    .HasColumnName(
+                        "CreatedAt"
+                    )
+                    .IsRequired();
+
+
+                // =============================================
+                // EMPLOYEE FOREIGN KEY
+                // =============================================
+
+                entity.HasOne(
+                    e => e.Employee
+                )
+                    .WithMany()
+                    .HasForeignKey(
+                        e => e.EmployeeID
+                    )
+                    .OnDelete(
+                        DeleteBehavior.Cascade
+                    );
             });
         }
     }
