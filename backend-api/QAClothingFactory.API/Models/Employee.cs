@@ -2,6 +2,9 @@
 {
     public class Employee
     {
+        // Google account unique identifier (sub)
+        public string? GoogleSubjectId { get; set; }
+
         // ================================================
         // PRIMARY KEY
         // ================================================

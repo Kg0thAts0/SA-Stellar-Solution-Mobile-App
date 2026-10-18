@@ -1,6 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
 using QAClothingFactory.API.Data;
+using Google.Apis.Auth;
 using QAClothingFactory.API.DTOs.Auth;
 using QAClothingFactory.API.Models;
 using QAClothingFactory.API.Services;
@@ -19,6 +22,7 @@ namespace QAClothingFactory.API.Controllers
 
         private readonly ApplicationDbContext _context;
 
+        private readonly IConfiguration _configuration;
 
         // ====================================================
         // TOKEN SERVICE
@@ -31,14 +35,18 @@ namespace QAClothingFactory.API.Controllers
         // CONSTRUCTOR
         // ====================================================
 
+
         public AuthController(
             ApplicationDbContext context,
-            TokenService tokenService
+            TokenService tokenService,
+            IConfiguration configuration
         )
         {
             _context = context;
             _tokenService = tokenService;
+            _configuration = configuration;
         }
+
 
 
         // ====================================================
@@ -478,6 +486,305 @@ namespace QAClothingFactory.API.Controllers
             return Ok(
                 response
             );
+        }
+
+
+        // ====================================================
+        // POST: api/auth/google
+        // ====================================================
+
+        [HttpPost("google")]
+        public async Task<IActionResult> GoogleLogin(
+            [FromBody] GoogleLoginRequest request
+        )
+        {
+            if (string.IsNullOrWhiteSpace(request.IdToken))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Google ID token is required."
+                });
+            }
+
+            var googleClientId = _configuration["GoogleAuth:ClientId"];
+
+            if (string.IsNullOrWhiteSpace(googleClientId))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    success = false,
+                    message = "Google authentication is not configured."
+                });
+            }
+
+            GoogleJsonWebSignature.Payload payload;
+
+            try
+            {
+                payload = await GoogleJsonWebSignature.ValidateAsync(
+                    request.IdToken,
+                    new GoogleJsonWebSignature.ValidationSettings
+                    {
+                        Audience = new[] { googleClientId }
+                    }
+                );
+            }
+            catch (InvalidJwtException)
+            {
+                return Unauthorized(new
+                {
+                    success = false,
+                    message = "Invalid or expired Google ID token."
+                });
+            }
+            catch (ArgumentException)
+            {
+                return Unauthorized(new
+                {
+                    success = false,
+                    message = "Invalid Google ID token."
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(payload.Subject))
+            {
+                return Unauthorized(new
+                {
+                    success = false,
+                    message = "Invalid Google account identifier."
+                });
+            }
+
+            // Google email alone must never link an existing employee account.
+            var employee = await _context.Employees
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e =>
+                    e.GoogleSubjectId == payload.Subject
+                );
+
+            if (employee == null)
+            {
+                return Unauthorized(new
+                {
+                    success = false,
+                    message = "This Google account is not linked to an employee account."
+                });
+            }
+
+            if (!string.Equals(
+                employee.EmployeeStatus,
+                "Active",
+                StringComparison.OrdinalIgnoreCase
+            ))
+            {
+                await RecordLoginAttempt(employee.EmailAddress, false);
+
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    success = false,
+                    message = "Your account is not active. Please contact an administrator."
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(employee.Role))
+            {
+                await RecordLoginAttempt(employee.EmailAddress, false);
+
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    success = false,
+                    message = "Your account does not have a system role assigned. Please contact an administrator."
+                });
+            }
+
+            var tokenResult = _tokenService.CreateToken(employee);
+
+            await RecordLoginAttempt(employee.EmailAddress, true);
+
+            return Ok(new LoginResponse
+            {
+                Success = true,
+                Message = "Google login successful.",
+                Token = tokenResult.Token,
+                ExpiresAt = tokenResult.ExpiresAt,
+                Employee = new EmployeeResponse
+                {
+                    EmployeeID = employee.EmployeeID,
+                    FullName = employee.FullName,
+                    EmailAddress = employee.EmailAddress,
+                    Role = employee.Role,
+                    EmployeeStatus = employee.EmployeeStatus ?? string.Empty
+                }
+            });
+        }
+
+
+        // ====================================================
+        // POST: api/auth/google/link
+        // ====================================================
+
+        [Authorize]
+        [HttpPost("google/link")]
+        public async Task<IActionResult> LinkGoogleAccount(
+            [FromBody] GoogleLinkRequest request)
+        {
+            var employeeIdClaim =
+                User.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            if (!int.TryParse(employeeIdClaim, out var employeeId))
+            {
+                return Unauthorized(new
+                {
+                    success = false,
+                    message = "Invalid authentication token."
+                });
+            }
+
+            var employee = await _context.Employees
+                .FirstOrDefaultAsync(e => e.EmployeeID == employeeId);
+
+            if (employee == null)
+            {
+                return Unauthorized(new
+                {
+                    success = false,
+                    message = "Employee account not found."
+                });
+            }
+
+            if (!string.Equals(
+                employee.EmployeeStatus,
+                "Active",
+                StringComparison.OrdinalIgnoreCase))
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    success = false,
+                    message = "Your account is not active."
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(employee.Role))
+            {
+                return StatusCode(StatusCodes.Status403Forbidden, new
+                {
+                    success = false,
+                    message = "Your account does not have an assigned role."
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.CurrentPassword) ||
+                !VerifyPassword(request.CurrentPassword, employee.Password))
+            {
+                return Unauthorized(new
+                {
+                    success = false,
+                    message = "Current password is incorrect."
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.IdToken))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Google ID token is required."
+                });
+            }
+
+            var googleClientId = _configuration["GoogleAuth:ClientId"];
+
+            if (string.IsNullOrWhiteSpace(googleClientId))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new
+                {
+                    success = false,
+                    message = "Google authentication is not configured."
+                });
+            }
+
+            GoogleJsonWebSignature.Payload payload;
+
+            try
+            {
+                payload = await GoogleJsonWebSignature.ValidateAsync(
+                    request.IdToken,
+                    new GoogleJsonWebSignature.ValidationSettings
+                    {
+                        Audience = new[] { googleClientId }
+                    });
+            }
+            catch (InvalidJwtException)
+            {
+                return Unauthorized(new
+                {
+                    success = false,
+                    message = "Invalid or expired Google ID token."
+                });
+            }
+            catch (ArgumentException)
+            {
+                return Unauthorized(new
+                {
+                    success = false,
+                    message = "Invalid Google ID token."
+                });
+            }
+
+            if (string.IsNullOrWhiteSpace(payload.Subject))
+            {
+                return Unauthorized(new
+                {
+                    success = false,
+                    message = "Invalid Google account identifier."
+                });
+            }
+
+            var linkedToAnotherEmployee = await _context.Employees
+                .AnyAsync(e =>
+                    e.GoogleSubjectId == payload.Subject &&
+                    e.EmployeeID != employee.EmployeeID);
+
+            if (linkedToAnotherEmployee)
+            {
+                return Conflict(new
+                {
+                    success = false,
+                    message = "This Google account is already linked to another employee."
+                });
+            }
+
+            if (!string.IsNullOrWhiteSpace(employee.GoogleSubjectId) &&
+                employee.GoogleSubjectId != payload.Subject)
+            {
+                return Conflict(new
+                {
+                    success = false,
+                    message = "Your employee account is already linked to a different Google account."
+                });
+            }
+
+            employee.GoogleSubjectId = payload.Subject;
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                return Conflict(new
+                {
+                    success = false,
+                    message = "Unable to link this Google account. It may already be linked."
+                });
+            }
+
+            return Ok(new
+            {
+                success = true,
+                message = "Google account linked successfully."
+            });
         }
 
 
