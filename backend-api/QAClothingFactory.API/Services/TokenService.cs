@@ -33,6 +33,32 @@ namespace QAClothingFactory.API.Services
         public (string Token, DateTime ExpiresAt)
             CreateToken(Employee employee)
         {
+            // =================================================
+            // VALIDATE EMPLOYEE
+            // =================================================
+
+            ArgumentNullException.ThrowIfNull(employee);
+
+
+            // =================================================
+            // VALIDATE EMPLOYEE ROLE
+            // =================================================
+
+            // Employees must have an assigned role before
+            // receiving a JWT authentication token.
+
+            if (string.IsNullOrWhiteSpace(employee.Role))
+            {
+                throw new InvalidOperationException(
+                    "Cannot generate a JWT for an employee without an assigned role."
+                );
+            }
+
+
+            // =================================================
+            // TOKEN EXPIRATION
+            // =================================================
+
             var expiresAt =
                 DateTime.UtcNow.AddMinutes(
                     _jwtSettings.ExpirationMinutes
@@ -80,6 +106,10 @@ namespace QAClothingFactory.API.Services
                 );
 
 
+            // =================================================
+            // SIGNING CREDENTIALS
+            // =================================================
+
             var credentials =
                 new SigningCredentials(
                     key,
@@ -88,7 +118,7 @@ namespace QAClothingFactory.API.Services
 
 
             // =================================================
-            // TOKEN
+            // GENERATE JWT TOKEN
             // =================================================
 
             var token =
@@ -110,10 +140,18 @@ namespace QAClothingFactory.API.Services
                 );
 
 
+            // =================================================
+            // CONVERT TOKEN TO STRING
+            // =================================================
+
             var tokenString =
                 new JwtSecurityTokenHandler()
                     .WriteToken(token);
 
+
+            // =================================================
+            // RETURN TOKEN AND EXPIRATION
+            // =================================================
 
             return (
                 tokenString,

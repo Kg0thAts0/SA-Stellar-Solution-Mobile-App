@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QAClothingFactory.API.Data;
@@ -247,7 +247,7 @@ namespace QAClothingFactory.API.Controllers
                                     employee.EmailAddress,
 
                                 Role =
-                                    employee.Role,
+                                    employee.Role ?? string.Empty,
 
                                 EmployeeStatus =
                                     employee.EmployeeStatus,
@@ -961,7 +961,7 @@ namespace QAClothingFactory.API.Controllers
                     employee.EmailAddress,
 
                 Role =
-                    employee.Role,
+                    employee.Role ?? string.Empty,
 
                 EmployeeStatus =
                     employee.EmployeeStatus,
