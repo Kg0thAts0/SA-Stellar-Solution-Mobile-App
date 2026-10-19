@@ -1,0 +1,39 @@
+
+name: Backend CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build ASP.NET Core API
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET 10 SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Restore dependencies
+        run: dotnet restore backend-api/QAClothingFactory.API/QAClothingFactory.API.csproj
+
+      - name: Build backend API
+        run: dotnet build backend-api/QAClothingFactory.API/QAClothingFactory.API.csproj --configuration Release --no-restore
+
+      - name: Publish backend API
+        run: dotnet publish backend-api/QAClothingFactory.API/QAClothingFactory.API.csproj --configuration Release --no-restore --output ./backend-publish
+
+      - name: Upload backend build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: qa-clothing-factory-backend
+          path: ./backend-publish/
+          retention-days: 7
