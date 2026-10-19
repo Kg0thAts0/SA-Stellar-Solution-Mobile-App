@@ -18,7 +18,8 @@ object RetrofitClient {
     // LOCAL DEVELOPMENT API
     // ========================================================
 
-    private const val BASE_URL = "http://192.168.0.136:5048/"
+    private const val BASE_URL =
+        "https://sa-stellar-solution-mobile-app.onrender.com/"
 
     // ========================================================
     // HTTP LOGGING

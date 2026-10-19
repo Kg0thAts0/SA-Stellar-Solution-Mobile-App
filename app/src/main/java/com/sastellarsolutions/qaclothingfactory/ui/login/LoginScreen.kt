@@ -43,6 +43,9 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import com.sastellarsolutions.qaclothingfactory.data.auth.GoogleSignInManager
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
@@ -85,6 +88,12 @@ fun LoginScreen(
 
     val coroutineScope =
         rememberCoroutineScope()
+
+    val context = LocalContext.current
+
+    val googleSignInManager = remember(context) {
+        GoogleSignInManager(context)
+    }
 
 
     // ========================================================
@@ -1033,9 +1042,37 @@ fun LoginScreen(
 
                 OutlinedButton(
                     onClick = {
-
                         if (!isLoading) {
-                            onGoogleSignInClick()
+                            coroutineScope.launch {
+                                isLoading = true
+                                loginError = null
+
+                                try {
+                                    val idToken = googleSignInManager.signIn()
+
+                                    when (val result = authRepository.googleLogin(idToken)) {
+                                        is AuthRepository.LoginResult.Success -> {
+                                            if (result.response.success) {
+                                                password = ""
+                                                onLoginSuccess(result.response)
+                                            } else {
+                                                loginError = result.response.message
+                                            }
+                                        }
+
+                                        is AuthRepository.LoginResult.Error -> {
+                                            loginError = result.message
+                                        }
+                                    }
+                                } catch (_: GetCredentialCancellationException) {
+                                    // User cancelled the account picker.
+                                } catch (_: Exception) {
+                                    loginError =
+                                        "Google Sign-In could not be completed. Please try again."
+                                } finally {
+                                    isLoading = false
+                                }
+                            }
                         }
                     },
 

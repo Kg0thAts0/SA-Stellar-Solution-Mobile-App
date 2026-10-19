@@ -39,6 +39,7 @@ import com.sastellarsolutions.qaclothingfactory.ui.settings.SettingsScreen
 import com.sastellarsolutions.qaclothingfactory.ui.supervisor.AssignedWorkScreen
 import com.sastellarsolutions.qaclothingfactory.ui.supervisor.TeamProgressScreen
 import com.sastellarsolutions.qaclothingfactory.ui.supervisor.DailyUpdatesScreen
+import com.sastellarsolutions.qaclothingfactory.ui.supervisor.SupervisorMyShiftsScreen
 
 
 // ============================================================
@@ -92,6 +93,8 @@ private enum class AppScreen {
     STOCK_MOVEMENTS,
 
     LOW_STOCK,
+
+    SUPERVISOR_MY_SHIFTS,
 
     SUPERVISOR_ASSIGNED_WORK,
 
@@ -746,6 +749,22 @@ fun AppNavigation() {
 
                             currentScreen =
                                 AppScreen.LOW_STOCK
+                        }
+                    },
+
+
+                    // =========================================
+                    // SUPERVISOR MY SHIFTS
+                    // =========================================
+
+                    onMyShiftsClick = {
+
+                        if (
+                            user.role == UserRole.SUPERVISOR ||
+                            user.role == UserRole.ADMIN
+                        ) {
+
+                            currentScreen = AppScreen.SUPERVISOR_MY_SHIFTS
                         }
                     },
 
@@ -1798,6 +1817,42 @@ fun AppNavigation() {
             } else {
 
                 currentScreen = AppScreen.LOGIN
+            }
+        }
+
+
+        // ====================================================
+        // SUPERVISOR MY SHIFTS
+        // ====================================================
+
+        AppScreen.SUPERVISOR_MY_SHIFTS -> {
+
+            val user = currentUser
+
+            if (
+                user != null &&
+                (user.role == UserRole.SUPERVISOR || user.role == UserRole.ADMIN)
+            ) {
+
+                val token = sessionManager.getToken()
+
+                if (!token.isNullOrBlank()) {
+
+                    SupervisorMyShiftsScreen(
+                        token = token,
+                        onBackClick = {
+                            currentScreen = AppScreen.DASHBOARD
+                        }
+                    )
+
+                } else {
+                    sessionManager.clearSession()
+                    currentUser = null
+                    currentScreen = AppScreen.LOGIN
+                }
+
+            } else {
+                currentScreen = AppScreen.DASHBOARD
             }
         }
 

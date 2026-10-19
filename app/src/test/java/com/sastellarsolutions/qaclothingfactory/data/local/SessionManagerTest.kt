@@ -1,3 +1,4 @@
+
 package com.sastellarsolutions.qaclothingfactory.data.local
 
 import android.content.Context
@@ -35,6 +36,8 @@ class SessionManagerTest {
         role: String = "Supervisor"
     ): LoginResponse {
         return LoginResponse(
+            success = true,
+            message = "Login successful",
             token = token,
             expiresAt = "2026-12-31T23:59:59Z",
             employee = EmployeeResponse(
@@ -69,37 +72,63 @@ class SessionManagerTest {
 
     @Test
     fun saveLoginSession_savesToken() {
-        sessionManager.saveLoginSession(createLoginResponse())
+        sessionManager.saveLoginSession(
+            createLoginResponse()
+        )
 
-        assertEquals("test-jwt-token", sessionManager.getToken())
+        assertEquals(
+            "test-jwt-token",
+            sessionManager.getToken()
+        )
     }
 
     @Test
     fun saveLoginSession_savesRole() {
         sessionManager.saveLoginSession(
-            createLoginResponse(role = "ProductionManager")
+            createLoginResponse(
+                role = "ProductionManager"
+            )
         )
 
-        assertEquals("ProductionManager", sessionManager.getRole())
+        assertEquals(
+            "ProductionManager",
+            sessionManager.getRole()
+        )
     }
 
     @Test
     fun saveLoginSession_restoresEmployee() {
-        sessionManager.saveLoginSession(createLoginResponse())
+        sessionManager.saveLoginSession(
+            createLoginResponse()
+        )
 
         val employee = sessionManager.getEmployee()
 
         assertNotNull(employee)
         assertEquals(10, employee?.employeeID)
-        assertEquals("Sibusiso Mhlongo", employee?.fullName)
-        assertEquals("supervisor@qafactory.co.za", employee?.emailAddress)
-        assertEquals("Supervisor", employee?.role)
-        assertEquals("Active", employee?.employeeStatus)
+        assertEquals(
+            "Sibusiso Mhlongo",
+            employee?.fullName
+        )
+        assertEquals(
+            "supervisor@qafactory.co.za",
+            employee?.emailAddress
+        )
+        assertEquals(
+            "Supervisor",
+            employee?.role
+        )
+        assertEquals(
+            "Active",
+            employee?.employeeStatus
+        )
     }
 
     @Test
     fun saveLoginSession_withValidToken_isLoggedIn() {
-        sessionManager.saveLoginSession(createLoginResponse())
+        sessionManager.saveLoginSession(
+            createLoginResponse()
+        )
 
         assertTrue(sessionManager.isLoggedIn())
     }
@@ -107,7 +136,9 @@ class SessionManagerTest {
     @Test
     fun blankToken_isNotLoggedIn() {
         sessionManager.saveLoginSession(
-            createLoginResponse(token = "   ")
+            createLoginResponse(
+                token = "   "
+            )
         )
 
         assertFalse(sessionManager.isLoggedIn())
@@ -115,19 +146,35 @@ class SessionManagerTest {
 
     @Test
     fun savedSession_isAvailableFromNewManagerInstance() {
-        sessionManager.saveLoginSession(createLoginResponse())
+        sessionManager.saveLoginSession(
+            createLoginResponse()
+        )
 
         val secondManager = SessionManager(context)
 
-        assertEquals("test-jwt-token", secondManager.getToken())
-        assertEquals("Supervisor", secondManager.getRole())
-        assertEquals(10, secondManager.getEmployee()?.employeeID)
+        assertEquals(
+            "test-jwt-token",
+            secondManager.getToken()
+        )
+
+        assertEquals(
+            "Supervisor",
+            secondManager.getRole()
+        )
+
+        assertEquals(
+            10,
+            secondManager.getEmployee()?.employeeID
+        )
+
         assertTrue(secondManager.isLoggedIn())
     }
 
     @Test
     fun clearSession_removesTokenRoleAndEmployee() {
-        sessionManager.saveLoginSession(createLoginResponse())
+        sessionManager.saveLoginSession(
+            createLoginResponse()
+        )
 
         sessionManager.clearSession()
 
@@ -137,3 +184,4 @@ class SessionManagerTest {
         assertFalse(sessionManager.isLoggedIn())
     }
 }
+

@@ -84,6 +84,8 @@ fun DashboardScreen(
 
     onLowStockClick: () -> Unit = {},
 
+    onMyShiftsClick: () -> Unit = {},
+
     onAssignedWorkClick: () -> Unit = {},
 
     onTeamProgressClick: () -> Unit = {},
@@ -405,6 +407,9 @@ fun DashboardScreen(
                 UserRole.SUPERVISOR -> {
 
                     SupervisorDashboardContent(
+
+                        onMyShiftsClick =
+                            onMyShiftsClick,
 
                         onAssignedWorkClick =
                             onAssignedWorkClick,
@@ -1438,6 +1443,8 @@ private fun InventoryDashboardContent(
 @Composable
 private fun SupervisorDashboardContent(
 
+    onMyShiftsClick: () -> Unit,
+
     onAssignedWorkClick: () -> Unit,
 
     onTeamProgressClick: () -> Unit,
@@ -1449,6 +1456,19 @@ private fun SupervisorDashboardContent(
     DashboardSectionTitle(
         title =
             "Supervision"
+    )
+
+
+    DashboardCard(
+
+        title =
+            "My Shifts",
+
+        description =
+            "View your assigned shifts and production lines.",
+
+        onClick =
+            onMyShiftsClick
     )
 
 
