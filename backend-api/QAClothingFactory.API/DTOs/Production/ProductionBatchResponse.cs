@@ -12,9 +12,17 @@
 
         public string ProductName { get; set; } = string.Empty;
 
+        public decimal TargetQuantity { get; set; }
+
         public decimal QuantityProduced { get; set; }
 
         public decimal? QuantityDefective { get; set; }
+
+        public decimal AcceptedQuantity { get; set; }
+
+        public decimal ProgressPercentage { get; set; }
+
+        public string ProductionStatus { get; set; } = string.Empty;
 
         public string? RawMaterialUsed { get; set; }
 

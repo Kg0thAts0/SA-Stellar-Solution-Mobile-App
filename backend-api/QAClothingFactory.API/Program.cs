@@ -210,6 +210,10 @@ app.UseAuthorization();
 
 app.MapControllers();
 
+app.MapGet("/healthz", () =>
+    Results.Ok(new { status = "healthy" })
+);
+
 
 // ============================================================
 // START APPLICATION

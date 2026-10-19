@@ -86,8 +86,22 @@ namespace QAClothingFactory.API.Controllers
                         ProductName =
                             product.ProductName,
 
+                        TargetQuantity =
+                            batch.TargetQuantity,
+
                         QuantityProduced =
                             batch.QuantityProduced,
+
+                        AcceptedQuantity =
+                            batch.QuantityProduced - (batch.QuantityDefective ?? 0),
+
+                        ProgressPercentage =
+                            batch.TargetQuantity > 0
+                                ? (batch.QuantityProduced / batch.TargetQuantity) * 100
+                                : 0,
+
+                        ProductionStatus =
+                            batch.ProductionStatus,
 
                         QuantityDefective =
                             batch.QuantityDefective,
@@ -226,8 +240,22 @@ namespace QAClothingFactory.API.Controllers
                         ProductName =
                             product.ProductName,
 
+                        TargetQuantity =
+                            productionBatch.TargetQuantity,
+
                         QuantityProduced =
                             productionBatch.QuantityProduced,
+
+                        AcceptedQuantity =
+                            productionBatch.QuantityProduced - (productionBatch.QuantityDefective ?? 0),
+
+                        ProgressPercentage =
+                            productionBatch.TargetQuantity > 0
+                                ? (productionBatch.QuantityProduced / productionBatch.TargetQuantity) * 100
+                                : 0,
+
+                        ProductionStatus =
+                            productionBatch.ProductionStatus,
 
                         QuantityDefective =
                             productionBatch.QuantityDefective,
@@ -311,6 +339,390 @@ namespace QAClothingFactory.API.Controllers
                     success = true,
 
                     batch
+                }
+            );
+        }
+
+
+        // ========================================================
+        // GET PRODUCTION PROGRESS
+        // ========================================================
+
+        [HttpGet("progress")]
+        public async Task<IActionResult> GetProductionProgress()
+        {
+            var batches =
+                await (
+                    from batch in _context.ProductionBatches
+                    join product in _context.FinishedGoods
+                        on batch.ProductID equals product.ProductID
+                    join supervisorEmployee in _context.Employees
+                        on batch.SupervisorID equals supervisorEmployee.EmployeeID
+                        into supervisorGroup
+                    from supervisor in supervisorGroup.DefaultIfEmpty()
+                    orderby batch.ProductionDate descending, batch.BatchID descending
+                    select new
+                    {
+                        batch.BatchID,
+                        batch.BatchNumber,
+                        batch.ProductID,
+                        product.ProductCode,
+                        product.ProductName,
+                        batch.TargetQuantity,
+                        batch.QuantityProduced,
+                        QuantityDefective = batch.QuantityDefective ?? 0,
+                        AcceptedQuantity =
+                            batch.QuantityProduced - (batch.QuantityDefective ?? 0),
+                        ProgressPercentage =
+                            batch.TargetQuantity > 0
+                                ? (batch.QuantityProduced / batch.TargetQuantity) * 100
+                                : 0,
+                        batch.ProductionStatus,
+                        batch.SupervisorID,
+                        SupervisorName =
+                            supervisor != null ? supervisor.FullName : null,
+                        batch.LineNumber,
+                        batch.Shift,
+                        batch.ProductionDate,
+                        batch.StartTime,
+                        batch.EndTime,
+                        batch.QualityStatus
+                    }
+                )
+                .AsNoTracking()
+                .ToListAsync();
+
+            var totalTarget = batches.Sum(batch => batch.TargetQuantity);
+            var totalProduced = batches.Sum(batch => batch.QuantityProduced);
+            var totalDefective = batches.Sum(batch => batch.QuantityDefective);
+            var totalAccepted = batches.Sum(batch => batch.AcceptedQuantity);
+
+            var overallProgressPercentage =
+                totalTarget > 0
+                    ? (totalProduced / totalTarget) * 100
+                    : 0;
+
+            var activeOrders =
+                batches.Count(batch => batch.ProductionStatus == "In Progress");
+
+            var completedOrders =
+                batches.Count(batch => batch.ProductionStatus == "Completed");
+
+            var plannedOrders =
+                batches.Count(batch => batch.ProductionStatus == "Planned");
+
+            var cancelledOrders =
+                batches.Count(batch => batch.ProductionStatus == "Cancelled");
+
+            return Ok(
+                new
+                {
+                    success = true,
+                    summary = new
+                    {
+                        totalOrders = batches.Count,
+                        activeOrders,
+                        completedOrders,
+                        plannedOrders,
+                        cancelledOrders,
+                        totalTarget,
+                        totalProduced,
+                        totalDefective,
+                        totalAccepted,
+                        overallProgressPercentage
+                    },
+                    count = batches.Count,
+                    batches
+                }
+            );
+        }
+
+
+        // ========================================================
+        // GET PRODUCTION REPORTS
+        // ========================================================
+
+        [HttpGet("reports")]
+        public async Task<IActionResult> GetProductionReports()
+        {
+            var batches =
+                await (
+                    from batch in _context.ProductionBatches
+                    join product in _context.FinishedGoods
+                        on batch.ProductID equals product.ProductID
+                    join supervisorEmployee in _context.Employees
+                        on batch.SupervisorID equals supervisorEmployee.EmployeeID
+                        into supervisorGroup
+                    from supervisor in supervisorGroup.DefaultIfEmpty()
+                    orderby batch.ProductionDate descending, batch.BatchID descending
+                    select new
+                    {
+                        batch.BatchID,
+                        batch.BatchNumber,
+                        batch.ProductID,
+                        product.ProductCode,
+                        product.ProductName,
+                        batch.TargetQuantity,
+                        batch.QuantityProduced,
+                        QuantityDefective = batch.QuantityDefective ?? 0,
+                        AcceptedQuantity =
+                            batch.QuantityProduced - (batch.QuantityDefective ?? 0),
+                        batch.ProductionStatus,
+                        batch.ProductionDate,
+                        batch.Shift,
+                        batch.LineNumber,
+                        batch.SupervisorID,
+                        SupervisorName =
+                            supervisor != null ? supervisor.FullName : null,
+                        batch.StartTime,
+                        batch.EndTime,
+                        batch.QualityStatus
+                    }
+                )
+                .AsNoTracking()
+                .ToListAsync();
+
+            var totalTarget =
+                batches.Sum(batch => batch.TargetQuantity);
+
+            var totalProduced =
+                batches.Sum(batch => batch.QuantityProduced);
+
+            var totalDefective =
+                batches.Sum(batch => batch.QuantityDefective);
+
+            var totalAccepted =
+                batches.Sum(batch => batch.AcceptedQuantity);
+
+            var targetAchievementPercentage =
+                totalTarget > 0
+                    ? (totalProduced / totalTarget) * 100
+                    : 0;
+
+            var defectRatePercentage =
+                totalProduced > 0
+                    ? (totalDefective / totalProduced) * 100
+                    : 0;
+
+            var productionByProduct =
+                batches
+                    .GroupBy(
+                        batch =>
+                            new
+                            {
+                                batch.ProductID,
+                                batch.ProductCode,
+                                batch.ProductName
+                            }
+                    )
+                    .Select(
+                        group =>
+                            new
+                            {
+                                productID = group.Key.ProductID,
+                                productCode = group.Key.ProductCode,
+                                productName = group.Key.ProductName,
+                                totalOrders = group.Count(),
+                                totalTarget =
+                                    group.Sum(batch => batch.TargetQuantity),
+                                totalProduced =
+                                    group.Sum(batch => batch.QuantityProduced),
+                                totalAccepted =
+                                    group.Sum(batch => batch.AcceptedQuantity),
+                                totalDefective =
+                                    group.Sum(batch => batch.QuantityDefective),
+                                achievementPercentage =
+                                    group.Sum(batch => batch.TargetQuantity) > 0
+                                        ? (
+                                            group.Sum(batch => batch.QuantityProduced) /
+                                            group.Sum(batch => batch.TargetQuantity)
+                                        ) * 100
+                                        : 0
+                            }
+                    )
+                    .OrderByDescending(item => item.totalProduced)
+                    .ToList();
+
+            var productionByShift =
+                batches
+                    .GroupBy(
+                        batch =>
+                            string.IsNullOrWhiteSpace(batch.Shift)
+                                ? "Not Assigned"
+                                : batch.Shift
+                    )
+                    .Select(
+                        group =>
+                            new
+                            {
+                                shift = group.Key,
+                                totalOrders = group.Count(),
+                                totalTarget =
+                                    group.Sum(batch => batch.TargetQuantity),
+                                totalProduced =
+                                    group.Sum(batch => batch.QuantityProduced),
+                                totalAccepted =
+                                    group.Sum(batch => batch.AcceptedQuantity),
+                                totalDefective =
+                                    group.Sum(batch => batch.QuantityDefective)
+                            }
+                    )
+                    .OrderByDescending(item => item.totalProduced)
+                    .ToList();
+
+            var productionByLine =
+                batches
+                    .GroupBy(
+                        batch =>
+                            string.IsNullOrWhiteSpace(batch.LineNumber)
+                                ? "Not Assigned"
+                                : batch.LineNumber
+                    )
+                    .Select(
+                        group =>
+                            new
+                            {
+                                lineNumber = group.Key,
+                                totalOrders = group.Count(),
+                                totalTarget =
+                                    group.Sum(batch => batch.TargetQuantity),
+                                totalProduced =
+                                    group.Sum(batch => batch.QuantityProduced),
+                                totalAccepted =
+                                    group.Sum(batch => batch.AcceptedQuantity),
+                                totalDefective =
+                                    group.Sum(batch => batch.QuantityDefective)
+                            }
+                    )
+                    .OrderByDescending(item => item.totalProduced)
+                    .ToList();
+
+            var supervisorPerformance =
+                batches
+                    .GroupBy(
+                        batch =>
+                            new
+                            {
+                                batch.SupervisorID,
+                                SupervisorName =
+                                    string.IsNullOrWhiteSpace(batch.SupervisorName)
+                                        ? "Not Assigned"
+                                        : batch.SupervisorName
+                            }
+                    )
+                    .Select(
+                        group =>
+                            new
+                            {
+                                supervisorID = group.Key.SupervisorID,
+                                supervisorName = group.Key.SupervisorName,
+                                totalOrders = group.Count(),
+                                completedOrders =
+                                    group.Count(
+                                        batch =>
+                                            batch.ProductionStatus == "Completed"
+                                    ),
+                                totalTarget =
+                                    group.Sum(batch => batch.TargetQuantity),
+                                totalProduced =
+                                    group.Sum(batch => batch.QuantityProduced),
+                                totalAccepted =
+                                    group.Sum(batch => batch.AcceptedQuantity),
+                                totalDefective =
+                                    group.Sum(batch => batch.QuantityDefective),
+                                achievementPercentage =
+                                    group.Sum(batch => batch.TargetQuantity) > 0
+                                        ? (
+                                            group.Sum(batch => batch.QuantityProduced) /
+                                            group.Sum(batch => batch.TargetQuantity)
+                                        ) * 100
+                                        : 0,
+                                defectRatePercentage =
+                                    group.Sum(batch => batch.QuantityProduced) > 0
+                                        ? (
+                                            group.Sum(batch => batch.QuantityDefective) /
+                                            group.Sum(batch => batch.QuantityProduced)
+                                        ) * 100
+                                        : 0
+                            }
+                    )
+                    .OrderByDescending(item => item.totalProduced)
+                    .ToList();
+
+            var batchHistory =
+                batches
+                    .Select(
+                        batch =>
+                            new
+                            {
+                                batch.BatchID,
+                                batch.BatchNumber,
+                                batch.ProductID,
+                                batch.ProductCode,
+                                batch.ProductName,
+                                batch.TargetQuantity,
+                                batch.QuantityProduced,
+                                batch.QuantityDefective,
+                                batch.AcceptedQuantity,
+                                progressPercentage =
+                                    batch.TargetQuantity > 0
+                                        ? (
+                                            batch.QuantityProduced /
+                                            batch.TargetQuantity
+                                        ) * 100
+                                        : 0,
+                                batch.ProductionStatus,
+                                batch.ProductionDate,
+                                batch.Shift,
+                                batch.LineNumber,
+                                batch.SupervisorID,
+                                batch.SupervisorName,
+                                batch.StartTime,
+                                batch.EndTime,
+                                batch.QualityStatus
+                            }
+                    )
+                    .ToList();
+
+            return Ok(
+                new
+                {
+                    success = true,
+
+                    summary = new
+                    {
+                        totalOrders = batches.Count,
+                        plannedOrders =
+                            batches.Count(
+                                batch => batch.ProductionStatus == "Planned"
+                            ),
+                        activeOrders =
+                            batches.Count(
+                                batch => batch.ProductionStatus == "In Progress"
+                            ),
+                        completedOrders =
+                            batches.Count(
+                                batch => batch.ProductionStatus == "Completed"
+                            ),
+                        cancelledOrders =
+                            batches.Count(
+                                batch => batch.ProductionStatus == "Cancelled"
+                            ),
+                        totalTarget,
+                        totalProduced,
+                        totalAccepted,
+                        totalDefective,
+                        targetAchievementPercentage,
+                        defectRatePercentage
+                    },
+
+                    productionByProduct,
+                    productionByShift,
+                    productionByLine,
+                    supervisorPerformance,
+
+                    historyCount = batchHistory.Count,
+                    batchHistory
                 }
             );
         }
@@ -447,6 +859,11 @@ namespace QAClothingFactory.API.Controllers
                 request.LineNumber?.Trim();
 
 
+            var productionStatus =
+                request.ProductionStatus?.Trim()
+                ?? "Planned";
+
+
             // ====================================================
             // VALIDATE BATCH NUMBER
             // ====================================================
@@ -509,6 +926,43 @@ namespace QAClothingFactory.API.Controllers
                             )
                     );
             }
+
+
+            // ====================================================
+            // VALIDATE PRODUCTION STATUS
+            // ====================================================
+
+            var allowedProductionStatuses =
+                new[]
+                {
+                    "Planned",
+                    "In Progress",
+                    "Completed",
+                    "Cancelled"
+                };
+
+            if (!allowedProductionStatuses.Contains(
+                    productionStatus,
+                    StringComparer.OrdinalIgnoreCase))
+            {
+                return BadRequest(
+                    new
+                    {
+                        success = false,
+                        message =
+                            "Production status must be Planned, In Progress, Completed or Cancelled."
+                    }
+                );
+            }
+
+            productionStatus =
+                allowedProductionStatuses.First(
+                    allowed =>
+                        allowed.Equals(
+                            productionStatus,
+                            StringComparison.OrdinalIgnoreCase
+                        )
+                );
 
 
             // ====================================================
@@ -689,6 +1143,9 @@ namespace QAClothingFactory.API.Controllers
                     ProductID =
                         request.ProductID,
 
+                    TargetQuantity =
+                        request.TargetQuantity,
+
                     QuantityProduced =
                         request.QuantityProduced,
 
@@ -714,6 +1171,9 @@ namespace QAClothingFactory.API.Controllers
 
                     EmployeeID =
                         employeeId,
+
+                    ProductionStatus =
+                        productionStatus,
 
                     QualityStatus =
                         "Pending",
@@ -777,5 +1237,554 @@ namespace QAClothingFactory.API.Controllers
                 }
             );
         }
+
+
+        // ========================================================
+        // UPDATE PRODUCTION BATCH
+        // ========================================================
+
+        [HttpPut("batches/{id:int}")]
+        public async Task<IActionResult> UpdateProductionBatch(
+            int id,
+            [FromBody] UpdateProductionBatchRequest request
+        )
+        {
+            // ====================================================
+            // FIND PRODUCTION BATCH
+            // ====================================================
+
+            var productionBatch =
+                await _context
+                    .ProductionBatches
+                    .FirstOrDefaultAsync(
+                        batch =>
+                            batch.BatchID == id
+                    );
+
+
+            if (productionBatch == null)
+            {
+                return NotFound(
+                    new
+                    {
+                        success = false,
+
+                        message =
+                            "Production batch was not found."
+                    }
+                );
+            }
+
+
+            // ====================================================
+            // NORMALISE VALUES
+            // ====================================================
+
+            var batchNumber =
+                request.BatchNumber?.Trim()
+                ?? string.Empty;
+
+
+            var shift =
+                request.Shift?.Trim();
+
+
+            var lineNumber =
+                request.LineNumber?.Trim();
+
+
+            var productionStatus =
+                request.ProductionStatus?.Trim()
+                ?? "Planned";
+
+
+            // ====================================================
+            // VALIDATE BATCH NUMBER
+            // ====================================================
+
+            if (string.IsNullOrWhiteSpace(batchNumber))
+            {
+                return BadRequest(
+                    new
+                    {
+                        success = false,
+
+                        message =
+                            "Batch number is required."
+                    }
+                );
+            }
+
+
+            // ====================================================
+            // VALIDATE QUANTITY PRODUCED
+            // ====================================================
+
+            if (request.QuantityProduced < 0)
+            {
+                return BadRequest(
+                    new
+                    {
+                        success = false,
+
+                        message =
+                            "Quantity produced cannot be negative."
+                    }
+                );
+            }
+
+
+            // ====================================================
+            // VALIDATE PRODUCTION STATUS
+            // ====================================================
+
+            var allowedProductionStatuses =
+                new[]
+                {
+                    "Planned",
+                    "In Progress",
+                    "Completed",
+                    "Cancelled"
+                };
+
+            if (!allowedProductionStatuses.Contains(
+                    productionStatus,
+                    StringComparer.OrdinalIgnoreCase))
+            {
+                return BadRequest(
+                    new
+                    {
+                        success = false,
+                        message =
+                            "Production status must be Planned, In Progress, Completed or Cancelled."
+                    }
+                );
+            }
+
+            productionStatus =
+                allowedProductionStatuses.First(
+                    allowed =>
+                        allowed.Equals(
+                            productionStatus,
+                            StringComparison.OrdinalIgnoreCase
+                        )
+                );
+
+
+            // ====================================================
+            // VALIDATE DEFECTIVE QUANTITY
+            // ====================================================
+
+            if (
+                request.QuantityDefective.HasValue &&
+                request.QuantityDefective.Value < 0
+            )
+            {
+                return BadRequest(
+                    new
+                    {
+                        success = false,
+
+                        message =
+                            "Defective quantity cannot be negative."
+                    }
+                );
+            }
+
+
+            if (
+                request.QuantityDefective.HasValue &&
+                request.QuantityDefective.Value >
+                request.QuantityProduced
+            )
+            {
+                return BadRequest(
+                    new
+                    {
+                        success = false,
+
+                        message =
+                            "Defective quantity cannot exceed quantity produced."
+                    }
+                );
+            }
+
+
+            // ====================================================
+            // VALIDATE SHIFT
+            // ====================================================
+
+            var allowedShifts =
+                new[]
+                {
+                    "Morning",
+                    "Afternoon",
+                    "Night"
+                };
+
+
+            if (
+                !string.IsNullOrWhiteSpace(shift) &&
+                !allowedShifts.Contains(
+                    shift,
+                    StringComparer.OrdinalIgnoreCase
+                )
+            )
+            {
+                return BadRequest(
+                    new
+                    {
+                        success = false,
+
+                        message =
+                            "Shift must be Morning, Afternoon or Night."
+                    }
+                );
+            }
+
+
+            if (!string.IsNullOrWhiteSpace(shift))
+            {
+                shift =
+                    allowedShifts.First(
+                        allowed =>
+                            allowed.Equals(
+                                shift,
+                                StringComparison.OrdinalIgnoreCase
+                            )
+                    );
+            }
+
+
+            // ====================================================
+            // VALIDATE START / END TIME
+            // ====================================================
+
+            if (
+                request.StartTime.HasValue &&
+                request.EndTime.HasValue &&
+                request.EndTime.Value <
+                request.StartTime.Value
+            )
+            {
+                return BadRequest(
+                    new
+                    {
+                        success = false,
+
+                        message =
+                            "End time cannot be earlier than start time."
+                    }
+                );
+            }
+
+
+            // ====================================================
+            // CHECK DUPLICATE BATCH NUMBER
+            // ====================================================
+
+            var batchNumberExists =
+                await _context
+                    .ProductionBatches
+                    .AnyAsync(
+                        batch =>
+                            batch.BatchID != id &&
+                            batch.BatchNumber.ToLower() ==
+                            batchNumber.ToLower()
+                    );
+
+
+            if (batchNumberExists)
+            {
+                return Conflict(
+                    new
+                    {
+                        success = false,
+
+                        message =
+                            "A production batch with this batch number already exists."
+                    }
+                );
+            }
+
+
+            // ====================================================
+            // CHECK PRODUCT
+            // ====================================================
+
+            var productExists =
+                await _context
+                    .FinishedGoods
+                    .AnyAsync(
+                        product =>
+                            product.ProductID ==
+                            request.ProductID
+                    );
+
+
+            if (!productExists)
+            {
+                return BadRequest(
+                    new
+                    {
+                        success = false,
+
+                        message =
+                            "The selected product does not exist."
+                    }
+                );
+            }
+
+
+            // ====================================================
+            // CHECK SUPERVISOR
+            // ====================================================
+
+            if (request.SupervisorID.HasValue)
+            {
+                var supervisorExists =
+                    await _context
+                        .Employees
+                        .AnyAsync(
+                            employee =>
+                                employee.EmployeeID ==
+                                    request.SupervisorID.Value &&
+                                employee.Role ==
+                                    "Supervisor" &&
+                                employee.EmployeeStatus ==
+                                    "Active"
+                        );
+
+
+                if (!supervisorExists)
+                {
+                    return BadRequest(
+                        new
+                        {
+                            success = false,
+
+                            message =
+                                "The selected supervisor is not an active Supervisor."
+                        }
+                    );
+                }
+            }
+
+
+            // ====================================================
+            // UPDATE PRODUCTION INFORMATION
+            // ====================================================
+
+            productionBatch.BatchNumber =
+                batchNumber;
+
+
+            productionBatch.ProductID =
+                request.ProductID;
+
+
+            productionBatch.TargetQuantity =
+                request.TargetQuantity;
+
+
+            productionBatch.QuantityProduced =
+                request.QuantityProduced;
+
+
+            productionBatch.QuantityDefective =
+                request.QuantityDefective ?? 0;
+
+
+            productionBatch.RawMaterialUsed =
+                request.RawMaterialUsed;
+
+
+            productionBatch.ProductionDate =
+                request.ProductionDate;
+
+
+            productionBatch.Shift =
+                shift;
+
+
+            productionBatch.LineNumber =
+                string.IsNullOrWhiteSpace(lineNumber)
+                    ? null
+                    : lineNumber;
+
+
+            productionBatch.SupervisorID =
+                request.SupervisorID;
+
+
+            productionBatch.ProductionStatus =
+                productionStatus;
+
+
+            productionBatch.StartTime =
+                request.StartTime;
+
+
+            productionBatch.EndTime =
+                request.EndTime;
+
+
+            /*
+             * EmployeeID, RecordedAt and the quality-control
+             * fields are deliberately not changed here.
+             *
+             * EmployeeID identifies who originally recorded
+             * the batch.
+             *
+             * QualityStatus, QualityCheckedBy,
+             * QualityCheckDate and QualityNotes belong to
+             * the Quality Control workflow.
+             */
+
+
+            // ====================================================
+            // SAVE CHANGES
+            // ====================================================
+
+            await _context
+                .SaveChangesAsync();
+
+
+            // ====================================================
+            // SUCCESS
+            // ====================================================
+
+            return Ok(
+                new
+                {
+                    success = true,
+
+                    message =
+                        "Production batch updated successfully.",
+
+                    batchID =
+                        productionBatch.BatchID,
+
+                    batchNumber =
+                        productionBatch.BatchNumber
+                }
+            );
+        }
+        // ========================================================
+        // DELETE PRODUCTION BATCH
+        // ========================================================
+
+        [HttpDelete("batches/{id:int}")]
+        public async Task<IActionResult> DeleteProductionBatch(
+            int id
+        )
+        {
+            // ====================================================
+            // FIND PRODUCTION BATCH
+            // ====================================================
+
+            var productionBatch =
+                await _context
+                    .ProductionBatches
+                    .FirstOrDefaultAsync(
+                        batch =>
+                            batch.BatchID == id
+                    );
+
+
+            // ====================================================
+            // BATCH NOT FOUND
+            // ====================================================
+
+            if (productionBatch == null)
+            {
+                return NotFound(
+                    new
+                    {
+                        success = false,
+
+                        message =
+                            "Production batch was not found."
+                    }
+                );
+            }
+
+
+            // ====================================================
+            // STORE VALUES BEFORE DELETE
+            // ====================================================
+
+            var deletedBatchID =
+                productionBatch.BatchID;
+
+
+            var deletedBatchNumber =
+                productionBatch.BatchNumber;
+
+
+            // ====================================================
+            // DELETE PRODUCTION BATCH
+            // ====================================================
+
+            _context
+                .ProductionBatches
+                .Remove(
+                    productionBatch
+                );
+
+
+            // ====================================================
+            // SAVE CHANGES
+            // ====================================================
+
+            try
+            {
+                await _context
+                    .SaveChangesAsync();
+            }
+            catch (DbUpdateException)
+            {
+                /*
+                 * A production batch may eventually be referenced
+                 * by another table such as quality inspections,
+                 * stock movements or production history.
+                 *
+                 * In that situation we should not expose the
+                 * database exception to the Android application.
+                 */
+
+                return Conflict(
+                    new
+                    {
+                        success = false,
+
+                        message =
+                            "This production batch cannot be deleted because it is being used by another record."
+                    }
+                );
+            }
+
+
+            // ====================================================
+            // SUCCESS
+            // ====================================================
+
+            return Ok(
+                new
+                {
+                    success = true,
+
+                    message =
+                        "Production batch deleted successfully.",
+
+                    batchID =
+                        deletedBatchID,
+
+                    batchNumber =
+                        deletedBatchNumber
+                }
+            );
+        }
     }
+
 }

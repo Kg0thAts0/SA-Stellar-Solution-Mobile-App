@@ -72,6 +72,15 @@ namespace QAClothingFactory.API.Data
                 entity.HasIndex(e => e.EmailAddress)
                     .IsUnique();
 
+                                // GOOGLE ACCOUNT LINK
+                entity.Property(e => e.GoogleSubjectId)
+                    .HasColumnName("GoogleSubjectId")
+                    .HasMaxLength(255)
+                    .IsRequired(false);
+
+                entity.HasIndex(e => e.GoogleSubjectId)
+                    .IsUnique()
+                    .HasDatabaseName("UX_employee_GoogleSubjectId");
                 entity.Property(e => e.Password)
                     .HasColumnName("Password")
                     .HasMaxLength(255)

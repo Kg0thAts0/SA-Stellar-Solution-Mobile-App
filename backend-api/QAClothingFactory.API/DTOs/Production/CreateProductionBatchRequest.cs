@@ -16,7 +16,15 @@ namespace QAClothingFactory.API.DTOs.Production
         [Range(
             0.01,
             double.MaxValue,
-            ErrorMessage = "Quantity produced must be greater than zero."
+            ErrorMessage = "Target quantity must be greater than zero."
+        )]
+        public decimal TargetQuantity { get; set; }
+
+
+        [Range(
+            0,
+            double.MaxValue,
+            ErrorMessage = "Quantity produced cannot be negative."
         )]
         public decimal QuantityProduced { get; set; }
 
@@ -44,6 +52,10 @@ namespace QAClothingFactory.API.DTOs.Production
 
 
         public int? SupervisorID { get; set; }
+
+
+        [MaxLength(20)]
+        public string ProductionStatus { get; set; } = "Planned";
 
 
         public TimeSpan? StartTime { get; set; }
