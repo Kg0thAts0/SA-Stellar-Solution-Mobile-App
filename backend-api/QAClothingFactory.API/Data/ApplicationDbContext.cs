@@ -34,6 +34,8 @@ namespace QAClothingFactory.API.Data
 
         public DbSet<PasswordReset> PasswordResets { get; set; }
 
+        public DbSet<CustomerQuotation> CustomerQuotations { get; set; }
+
 
         // ====================================================
         // DATABASE MAPPING
@@ -588,6 +590,96 @@ namespace QAClothingFactory.API.Data
                     .OnDelete(
                         DeleteBehavior.Cascade
                     );
+            });
+
+            // CUSTOMER QUOTATION
+            modelBuilder.Entity<CustomerQuotation>(entity =>
+            {
+                entity.ToTable("customer_quotation");
+
+                entity.HasKey(e => e.QuotationID);
+
+                entity.Property(e => e.QuotationID)
+                    .HasColumnName("QuotationID")
+                    .ValueGeneratedOnAdd();
+
+                entity.Property(e => e.ReferenceNumber)
+                    .HasColumnName("ReferenceNumber")
+                    .HasMaxLength(50)
+                    .IsRequired();
+
+                entity.HasIndex(e => e.ReferenceNumber)
+                    .IsUnique();
+
+                entity.Property(e => e.FullName)
+                    .HasColumnName("FullName")
+                    .HasMaxLength(100)
+                    .IsRequired();
+
+                entity.Property(e => e.Company)
+                    .HasColumnName("Company")
+                    .HasMaxLength(150);
+
+                entity.Property(e => e.Email)
+                    .HasColumnName("Email")
+                    .HasMaxLength(254)
+                    .IsRequired();
+
+                entity.Property(e => e.Phone)
+                    .HasColumnName("Phone")
+                    .HasMaxLength(30)
+                    .IsRequired();
+
+                entity.Property(e => e.Category)
+                    .HasColumnName("Category")
+                    .HasMaxLength(100)
+                    .IsRequired();
+
+                entity.Property(e => e.Quantity)
+                    .HasColumnName("Quantity")
+                    .IsRequired();
+
+                entity.Property(e => e.Deadline)
+                    .HasColumnName("Deadline")
+                    .IsRequired();
+
+                entity.Property(e => e.Specifications)
+                    .HasColumnName("Specifications")
+                    .HasColumnType("longtext")
+                    .IsRequired();
+
+                entity.Property(e => e.Status)
+                    .HasColumnName("Status")
+                    .HasMaxLength(30)
+                    .HasDefaultValue("Pending")
+                    .IsRequired();
+
+                entity.Property(e => e.CreatedAtUtc)
+                    .HasColumnName("CreatedAtUtc")
+                    .IsRequired();
+
+                entity.Property(e => e.ReviewedByEmployeeID)
+                    .HasColumnName("ReviewedByEmployeeID");
+
+                entity.Property(e => e.ReviewedAtUtc)
+                    .HasColumnName("ReviewedAtUtc");
+
+                entity.Property(e => e.ManagerNotes)
+                    .HasColumnName("ManagerNotes")
+                    .HasColumnType("longtext");
+
+                entity.Property(e => e.QuotedAmount)
+                    .HasColumnName("QuotedAmount")
+                    .HasPrecision(18, 2);
+
+                entity.HasIndex(e => e.Status);
+                entity.HasIndex(e => e.CreatedAtUtc);
+                entity.HasIndex(e => e.ReviewedByEmployeeID);
+
+                entity.HasOne<Employee>()
+                    .WithMany()
+                    .HasForeignKey(e => e.ReviewedByEmployeeID)
+                    .OnDelete(DeleteBehavior.SetNull);
             });
         }
     }

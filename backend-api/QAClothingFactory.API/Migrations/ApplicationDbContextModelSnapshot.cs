@@ -22,6 +22,106 @@ namespace QAClothingFactory.API.Migrations
 
             MySqlModelBuilderExtensions.AutoIncrementColumns(modelBuilder);
 
+            modelBuilder.Entity("QAClothingFactory.API.Models.CustomerQuotation", b =>
+                {
+                    b.Property<int>("QuotationID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("QuotationID");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("QuotationID"));
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("Category");
+
+                    b.Property<string>("Company")
+                        .HasMaxLength(150)
+                        .HasColumnType("varchar(150)")
+                        .HasColumnName("Company");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("CreatedAtUtc");
+
+                    b.Property<DateTime>("Deadline")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("Deadline");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(254)
+                        .HasColumnType("varchar(254)")
+                        .HasColumnName("Email");
+
+                    b.Property<string>("FullName")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("varchar(100)")
+                        .HasColumnName("FullName");
+
+                    b.Property<string>("ManagerNotes")
+                        .HasColumnType("longtext")
+                        .HasColumnName("ManagerNotes");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("varchar(30)")
+                        .HasColumnName("Phone");
+
+                    b.Property<int>("Quantity")
+                        .HasColumnType("int")
+                        .HasColumnName("Quantity");
+
+                    b.Property<decimal?>("QuotedAmount")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)")
+                        .HasColumnName("QuotedAmount");
+
+                    b.Property<string>("ReferenceNumber")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("varchar(50)")
+                        .HasColumnName("ReferenceNumber");
+
+                    b.Property<DateTime?>("ReviewedAtUtc")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("ReviewedAtUtc");
+
+                    b.Property<int?>("ReviewedByEmployeeID")
+                        .HasColumnType("int")
+                        .HasColumnName("ReviewedByEmployeeID");
+
+                    b.Property<string>("Specifications")
+                        .IsRequired()
+                        .HasColumnType("longtext")
+                        .HasColumnName("Specifications");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("varchar(30)")
+                        .HasDefaultValue("Pending")
+                        .HasColumnName("Status");
+
+                    b.HasKey("QuotationID");
+
+                    b.HasIndex("CreatedAtUtc");
+
+                    b.HasIndex("ReferenceNumber")
+                        .IsUnique();
+
+                    b.HasIndex("ReviewedByEmployeeID");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("customer_quotation", (string)null);
+                });
+
             modelBuilder.Entity("QAClothingFactory.API.Models.Employee", b =>
                 {
                     b.Property<int>("EmployeeID")
@@ -55,6 +155,11 @@ namespace QAClothingFactory.API.Migrations
                         .HasColumnType("varchar(100)")
                         .HasColumnName("FullName");
 
+                    b.Property<string>("GoogleSubjectId")
+                        .HasMaxLength(255)
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("GoogleSubjectId");
+
                     b.Property<string>("Password")
                         .IsRequired()
                         .HasMaxLength(255)
@@ -69,6 +174,10 @@ namespace QAClothingFactory.API.Migrations
 
                     b.HasIndex("EmailAddress")
                         .IsUnique();
+
+                    b.HasIndex("GoogleSubjectId")
+                        .IsUnique()
+                        .HasDatabaseName("UX_employee_GoogleSubjectId");
 
                     b.ToTable("employee", (string)null);
                 });
@@ -544,6 +653,14 @@ namespace QAClothingFactory.API.Migrations
                     b.HasIndex("EmployeeID");
 
                     b.ToTable("system_activity", (string)null);
+                });
+
+            modelBuilder.Entity("QAClothingFactory.API.Models.CustomerQuotation", b =>
+                {
+                    b.HasOne("QAClothingFactory.API.Models.Employee", null)
+                        .WithMany()
+                        .HasForeignKey("ReviewedByEmployeeID")
+                        .OnDelete(DeleteBehavior.SetNull);
                 });
 
             modelBuilder.Entity("QAClothingFactory.API.Models.PasswordReset", b =>
