@@ -1,3 +1,4 @@
+
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -5,9 +6,7 @@ using QAClothingFactory.API.Data;
 using QAClothingFactory.API.Services;
 using System.Text;
 
-var builder =
-    WebApplication.CreateBuilder(args);
-
+var builder = WebApplication.CreateBuilder(args);
 
 // ============================================================
 // CONTROLLERS
@@ -15,13 +14,30 @@ var builder =
 
 builder.Services.AddControllers();
 
-
 // ============================================================
 // OPENAPI
 // ============================================================
 
 builder.Services.AddOpenApi();
 
+// ============================================================
+// CORS - CUSTOMER WEBSITE
+// ============================================================
+
+const string CustomerWebsiteCorsPolicy = "CustomerWebsiteCorsPolicy";
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(CustomerWebsiteCorsPolicy, policy =>
+    {
+        policy
+            .WithOrigins(
+                "https://qa-clothing-factory-customer.onrender.com"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 // ============================================================
 // DATABASE CONNECTION
@@ -32,18 +48,12 @@ var connectionString =
         "DefaultConnection"
     );
 
-
-if (
-    string.IsNullOrWhiteSpace(
-        connectionString
-    )
-)
+if (string.IsNullOrWhiteSpace(connectionString))
 {
     throw new InvalidOperationException(
         "Database connection string 'DefaultConnection' was not found."
     );
 }
-
 
 // ============================================================
 // ENTITY FRAMEWORK + MARIADB
@@ -53,26 +63,15 @@ builder.Services.AddDbContext<ApplicationDbContext>(
     options =>
         options.UseMySql(
             connectionString,
-
-            ServerVersion.AutoDetect(
-                connectionString
-            )
+            ServerVersion.AutoDetect(connectionString)
         )
 );
-
 
 // ============================================================
 // HTTP CONTEXT ACCESSOR
 // ============================================================
-//
-// Required by SystemActivityService so it can read:
-// - authenticated EmployeeID from JWT
-// - request IP address
-//
-// ============================================================
 
 builder.Services.AddHttpContextAccessor();
-
 
 // ============================================================
 // APPLICATION SERVICES
@@ -82,80 +81,46 @@ builder.Services.AddScoped<TokenService>();
 
 builder.Services.AddScoped<SystemActivityService>();
 
-
 // ============================================================
 // JWT CONFIGURATION
 // ============================================================
 
-var jwtKey =
-    builder.Configuration[
-        "Jwt:Key"
-    ];
+var jwtKey = builder.Configuration["Jwt:Key"];
+var jwtIssuer = builder.Configuration["Jwt:Issuer"];
+var jwtAudience = builder.Configuration["Jwt:Audience"];
 
-var jwtIssuer =
-    builder.Configuration[
-        "Jwt:Issuer"
-    ];
-
-var jwtAudience =
-    builder.Configuration[
-        "Jwt:Audience"
-    ];
-
-
-if (
-    string.IsNullOrWhiteSpace(
-        jwtKey
-    )
-)
+if (string.IsNullOrWhiteSpace(jwtKey))
 {
     throw new InvalidOperationException(
         "JWT signing key is missing."
     );
 }
 
-
 builder.Services
     .AddAuthentication(
         JwtBearerDefaults.AuthenticationScheme
     )
-    .AddJwtBearer(
-        options =>
-        {
-            options.TokenValidationParameters =
-                new TokenValidationParameters
-                {
-                    ValidateIssuer =
-                        true,
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters =
+            new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
 
-                    ValidateAudience =
-                        true,
+                ValidIssuer = jwtIssuer,
+                ValidAudience = jwtAudience,
 
-                    ValidateLifetime =
-                        true,
+                IssuerSigningKey =
+                    new SymmetricSecurityKey(
+                        Encoding.UTF8.GetBytes(jwtKey)
+                    ),
 
-                    ValidateIssuerSigningKey =
-                        true,
-
-                    ValidIssuer =
-                        jwtIssuer,
-
-                    ValidAudience =
-                        jwtAudience,
-
-                    IssuerSigningKey =
-                        new SymmetricSecurityKey(
-                            Encoding.UTF8.GetBytes(
-                                jwtKey
-                            )
-                        ),
-
-                    ClockSkew =
-                        TimeSpan.Zero
-                };
-        }
-    );
-
+                ClockSkew = TimeSpan.Zero
+            };
+    });
 
 // ============================================================
 // AUTHORIZATION
@@ -163,26 +128,20 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-
 // ============================================================
 // BUILD APPLICATION
 // ============================================================
 
-var app =
-    builder.Build();
-
+var app = builder.Build();
 
 // ============================================================
 // DEVELOPMENT
 // ============================================================
 
-if (
-    app.Environment.IsDevelopment()
-)
+if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
 }
-
 
 // ============================================================
 // HTTPS
@@ -190,19 +149,18 @@ if (
 
 app.UseHttpsRedirection();
 
+// ============================================================
+// CORS
+// ============================================================
+
+app.UseCors(CustomerWebsiteCorsPolicy);
 
 // ============================================================
-// AUTHENTICATION
-// ============================================================
-//
-// Authentication MUST run before authorization.
-//
+// AUTHENTICATION AND AUTHORIZATION
 // ============================================================
 
 app.UseAuthentication();
-
 app.UseAuthorization();
-
 
 // ============================================================
 // CONTROLLERS
@@ -213,7 +171,6 @@ app.MapControllers();
 app.MapGet("/healthz", () =>
     Results.Ok(new { status = "healthy" })
 );
-
 
 // ============================================================
 // START APPLICATION
