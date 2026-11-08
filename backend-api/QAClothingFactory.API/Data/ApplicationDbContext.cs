@@ -11,7 +11,6 @@ namespace QAClothingFactory.API.Data
         {
         }
 
-
         // ====================================================
         // DATABASE TABLES
         // ====================================================
@@ -26,6 +25,10 @@ namespace QAClothingFactory.API.Data
 
         public DbSet<ProductionBatch> ProductionBatches { get; set; }
 
+        public DbSet<MaterialRequest> MaterialRequests { get; set; }
+
+        public DbSet<MaterialRequestItem> MaterialRequestItems { get; set; }
+
         public DbSet<LoginAttempt> LoginAttempts { get; set; }
 
         public DbSet<ShiftTeam> ShiftTeams { get; set; }
@@ -36,7 +39,6 @@ namespace QAClothingFactory.API.Data
 
         public DbSet<CustomerQuotation> CustomerQuotations { get; set; }
 
-
         // ====================================================
         // DATABASE MAPPING
         // ====================================================
@@ -46,7 +48,6 @@ namespace QAClothingFactory.API.Data
         )
         {
             base.OnModelCreating(modelBuilder);
-
 
             // =================================================
             // EMPLOYEE
@@ -74,20 +75,35 @@ namespace QAClothingFactory.API.Data
                 entity.HasIndex(e => e.EmailAddress)
                     .IsUnique();
 
-                                // GOOGLE ACCOUNT LINK
-                entity.Property(e => e.GoogleSubjectId)
-                    .HasColumnName("GoogleSubjectId")
-                    .HasMaxLength(255)
-                    .IsRequired(false);
-
-                entity.HasIndex(e => e.GoogleSubjectId)
-                    .IsUnique()
-                    .HasDatabaseName("UX_employee_GoogleSubjectId");
                 entity.Property(e => e.Password)
                     .HasColumnName("Password")
                     .HasMaxLength(255)
                     .IsRequired();
 
+                // =============================================
+                // GOOGLE ACCOUNT LINK
+                // =============================================
+                //
+                // Google's unique account identifier (sub).
+                //
+                // NULL means the employee has not linked
+                // a Google account.
+                //
+                // The identifier must only be assigned
+                // through a secure account-linking process.
+                // =============================================
+
+                entity.Property(e => e.GoogleSubjectId)
+                    .HasColumnName("GoogleSubjectId")
+                    .HasMaxLength(255)
+                    .IsRequired(false);
+
+                // A Google account can only be linked
+                // to one employee.
+
+                entity.HasIndex(e => e.GoogleSubjectId)
+                    .IsUnique()
+                    .HasDatabaseName("UX_employee_GoogleSubjectId");
 
                 // =============================================
                 // ROLE
@@ -105,7 +121,6 @@ namespace QAClothingFactory.API.Data
                     )
                     .IsRequired(false);
 
-
                 // =============================================
                 // EMPLOYEE STATUS
                 // =============================================
@@ -122,7 +137,6 @@ namespace QAClothingFactory.API.Data
                 entity.Property(e => e.CreatedBy)
                     .HasColumnName("CreatedBy");
             });
-
 
             // =================================================
             // FINISHED GOOD
@@ -196,7 +210,6 @@ namespace QAClothingFactory.API.Data
                     .HasColumnName("InspectionNotes");
             });
 
-
             // =================================================
             // RAW MATERIAL
             // =================================================
@@ -258,20 +271,15 @@ namespace QAClothingFactory.API.Data
                     .HasColumnName("UpdatedBy");
             });
 
-
             // =================================================
             // INVENTORY TRANSACTION
             // =================================================
 
             modelBuilder.Entity<InventoryTransaction>(entity =>
             {
-                entity.ToTable(
-                    "inventory_transaction"
-                );
+                entity.ToTable("inventory_transaction");
 
-                entity.HasKey(
-                    e => e.TransactionID
-                );
+                entity.HasKey(e => e.TransactionID);
 
                 entity.Property(e => e.TransactionID)
                     .HasColumnName("TransactionID");
@@ -310,7 +318,6 @@ namespace QAClothingFactory.API.Data
                 entity.Property(e => e.PerformedBy)
                     .HasColumnName("PerformedBy");
             });
-
 
             // =================================================
             // PRODUCTION BATCH
@@ -392,6 +399,109 @@ namespace QAClothingFactory.API.Data
                     .HasColumnName("EndTime");
             });
 
+            // =================================================
+            // MATERIAL REQUEST
+            // =================================================
+
+            modelBuilder.Entity<MaterialRequest>(entity =>
+            {
+                entity.ToTable("material_request");
+
+                entity.HasKey(e => e.RequestID);
+
+                entity.Property(e => e.RequestID)
+                    .HasColumnName("RequestID")
+                    .ValueGeneratedOnAdd();
+
+                entity.Property(e => e.BatchID)
+                    .HasColumnName("BatchID")
+                    .IsRequired();
+
+                entity.Property(e => e.RequestedBy)
+                    .HasColumnName("RequestedBy")
+                    .IsRequired();
+
+                entity.Property(e => e.RequestedAt)
+                    .HasColumnName("RequestedAt")
+                    .IsRequired();
+
+                entity.Property(e => e.Status)
+                    .HasColumnName("Status")
+                    .HasMaxLength(30)
+                    .HasDefaultValue("Pending")
+                    .IsRequired();
+
+                entity.Property(e => e.Notes)
+                    .HasColumnName("Notes")
+                    .HasColumnType("longtext");
+
+                entity.HasIndex(e => e.BatchID);
+                entity.HasIndex(e => e.RequestedBy);
+                entity.HasIndex(e => e.Status);
+                entity.HasIndex(e => e.RequestedAt);
+
+                entity.HasOne(e => e.ProductionBatch)
+                    .WithMany()
+                    .HasForeignKey(e => e.BatchID)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.RequestingEmployee)
+                    .WithMany()
+                    .HasForeignKey(e => e.RequestedBy)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // =================================================
+            // MATERIAL REQUEST ITEM
+            // =================================================
+
+            modelBuilder.Entity<MaterialRequestItem>(entity =>
+            {
+                entity.ToTable("material_request_item");
+
+                entity.HasKey(e => e.RequestItemID);
+
+                entity.Property(e => e.RequestItemID)
+                    .HasColumnName("RequestItemID")
+                    .ValueGeneratedOnAdd();
+
+                entity.Property(e => e.RequestID)
+                    .HasColumnName("RequestID")
+                    .IsRequired();
+
+                entity.Property(e => e.MaterialID)
+                    .HasColumnName("MaterialID")
+                    .IsRequired();
+
+                entity.Property(e => e.QuantityRequested)
+                    .HasColumnName("QuantityRequested")
+                    .HasPrecision(10, 2)
+                    .IsRequired();
+
+                entity.Property(e => e.QuantityIssued)
+                    .HasColumnName("QuantityIssued")
+                    .HasPrecision(10, 2)
+                    .HasDefaultValue(0m)
+                    .IsRequired();
+
+                entity.Property(e => e.Notes)
+                    .HasColumnName("Notes")
+                    .HasColumnType("longtext");
+
+                entity.HasIndex(e => e.RequestID);
+                entity.HasIndex(e => e.MaterialID);
+                entity.HasIndex(e => new { e.RequestID, e.MaterialID }).IsUnique();
+
+                entity.HasOne(e => e.MaterialRequest)
+                    .WithMany(e => e.Items)
+                    .HasForeignKey(e => e.RequestID)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne(e => e.RawMaterial)
+                    .WithMany()
+                    .HasForeignKey(e => e.MaterialID)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
 
             // =================================================
             // LOGIN ATTEMPTS
@@ -422,7 +532,6 @@ namespace QAClothingFactory.API.Data
                 entity.Property(e => e.Success)
                     .HasColumnName("Success");
             });
-
 
             // =================================================
             // SHIFT TEAM
@@ -462,7 +571,6 @@ namespace QAClothingFactory.API.Data
                 entity.Property(e => e.CreatedAt)
                     .HasColumnName("CreatedAt");
             });
-
 
             // =================================================
             // SYSTEM ACTIVITY
@@ -510,7 +618,6 @@ namespace QAClothingFactory.API.Data
                     .OnDelete(DeleteBehavior.SetNull);
             });
 
-
             // =================================================
             // PASSWORD RESET
             // =================================================
@@ -519,80 +626,45 @@ namespace QAClothingFactory.API.Data
             {
                 entity.ToTable("password_reset");
 
-                entity.HasKey(
-                    e => e.PasswordResetID
-                );
+                entity.HasKey(e => e.PasswordResetID);
 
-                entity.Property(
-                    e => e.PasswordResetID
-                )
-                    .HasColumnName(
-                        "PasswordResetID"
-                    );
+                entity.Property(e => e.PasswordResetID)
+                    .HasColumnName("PasswordResetID");
 
-
-                entity.Property(
-                    e => e.EmployeeID
-                )
-                    .HasColumnName(
-                        "EmployeeID"
-                    )
+                entity.Property(e => e.EmployeeID)
+                    .HasColumnName("EmployeeID")
                     .IsRequired();
 
-
-                entity.Property(
-                    e => e.TokenHash
-                )
-                    .HasColumnName(
-                        "TokenHash"
-                    )
+                entity.Property(e => e.TokenHash)
+                    .HasColumnName("TokenHash")
                     .HasMaxLength(255)
                     .IsRequired();
 
-
-                entity.Property(
-                    e => e.ExpiresAt
-                )
-                    .HasColumnName(
-                        "ExpiresAt"
-                    )
+                entity.Property(e => e.ExpiresAt)
+                    .HasColumnName("ExpiresAt")
                     .IsRequired();
 
+                entity.Property(e => e.UsedAt)
+                    .HasColumnName("UsedAt");
 
-                entity.Property(
-                    e => e.UsedAt
-                )
-                    .HasColumnName(
-                        "UsedAt"
-                    );
-
-
-                entity.Property(
-                    e => e.CreatedAt
-                )
-                    .HasColumnName(
-                        "CreatedAt"
-                    )
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnName("CreatedAt")
                     .IsRequired();
-
 
                 // =============================================
                 // EMPLOYEE FOREIGN KEY
                 // =============================================
 
-                entity.HasOne(
-                    e => e.Employee
-                )
+                entity.HasOne(e => e.Employee)
                     .WithMany()
-                    .HasForeignKey(
-                        e => e.EmployeeID
-                    )
-                    .OnDelete(
-                        DeleteBehavior.Cascade
-                    );
+                    .HasForeignKey(e => e.EmployeeID)
+                    .OnDelete(DeleteBehavior.Cascade);
             });
 
+            // =================================================
             // CUSTOMER QUOTATION
+            // =================================================
+
             modelBuilder.Entity<CustomerQuotation>(entity =>
             {
                 entity.ToTable("customer_quotation");

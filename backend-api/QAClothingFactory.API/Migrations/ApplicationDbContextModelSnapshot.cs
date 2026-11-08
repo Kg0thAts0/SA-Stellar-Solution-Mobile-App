@@ -353,6 +353,97 @@ namespace QAClothingFactory.API.Migrations
                     b.ToTable("login_attempts", (string)null);
                 });
 
+            modelBuilder.Entity("QAClothingFactory.API.Models.MaterialRequest", b =>
+                {
+                    b.Property<int>("RequestID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("RequestID");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("RequestID"));
+
+                    b.Property<int>("BatchID")
+                        .HasColumnType("int")
+                        .HasColumnName("BatchID");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("longtext")
+                        .HasColumnName("Notes");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("datetime(6)")
+                        .HasColumnName("RequestedAt");
+
+                    b.Property<int>("RequestedBy")
+                        .HasColumnType("int")
+                        .HasColumnName("RequestedBy");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(30)
+                        .HasColumnType("varchar(30)")
+                        .HasDefaultValue("Pending")
+                        .HasColumnName("Status");
+
+                    b.HasKey("RequestID");
+
+                    b.HasIndex("BatchID");
+
+                    b.HasIndex("RequestedAt");
+
+                    b.HasIndex("RequestedBy");
+
+                    b.HasIndex("Status");
+
+                    b.ToTable("material_request", (string)null);
+                });
+
+            modelBuilder.Entity("QAClothingFactory.API.Models.MaterialRequestItem", b =>
+                {
+                    b.Property<int>("RequestItemID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int")
+                        .HasColumnName("RequestItemID");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("RequestItemID"));
+
+                    b.Property<int>("MaterialID")
+                        .HasColumnType("int")
+                        .HasColumnName("MaterialID");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("longtext")
+                        .HasColumnName("Notes");
+
+                    b.Property<decimal>("QuantityIssued")
+                        .ValueGeneratedOnAdd()
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)")
+                        .HasDefaultValue(0m)
+                        .HasColumnName("QuantityIssued");
+
+                    b.Property<decimal>("QuantityRequested")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal(10,2)")
+                        .HasColumnName("QuantityRequested");
+
+                    b.Property<int>("RequestID")
+                        .HasColumnType("int")
+                        .HasColumnName("RequestID");
+
+                    b.HasKey("RequestItemID");
+
+                    b.HasIndex("MaterialID");
+
+                    b.HasIndex("RequestID");
+
+                    b.HasIndex("RequestID", "MaterialID")
+                        .IsUnique();
+
+                    b.ToTable("material_request_item", (string)null);
+                });
+
             modelBuilder.Entity("QAClothingFactory.API.Models.PasswordReset", b =>
                 {
                     b.Property<int>("PasswordResetID")
@@ -663,6 +754,44 @@ namespace QAClothingFactory.API.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
                 });
 
+            modelBuilder.Entity("QAClothingFactory.API.Models.MaterialRequest", b =>
+                {
+                    b.HasOne("QAClothingFactory.API.Models.ProductionBatch", "ProductionBatch")
+                        .WithMany()
+                        .HasForeignKey("BatchID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("QAClothingFactory.API.Models.Employee", "RequestingEmployee")
+                        .WithMany()
+                        .HasForeignKey("RequestedBy")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("ProductionBatch");
+
+                    b.Navigation("RequestingEmployee");
+                });
+
+            modelBuilder.Entity("QAClothingFactory.API.Models.MaterialRequestItem", b =>
+                {
+                    b.HasOne("QAClothingFactory.API.Models.RawMaterial", "RawMaterial")
+                        .WithMany()
+                        .HasForeignKey("MaterialID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("QAClothingFactory.API.Models.MaterialRequest", "MaterialRequest")
+                        .WithMany("Items")
+                        .HasForeignKey("RequestID")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("MaterialRequest");
+
+                    b.Navigation("RawMaterial");
+                });
+
             modelBuilder.Entity("QAClothingFactory.API.Models.PasswordReset", b =>
                 {
                     b.HasOne("QAClothingFactory.API.Models.Employee", "Employee")
@@ -682,6 +811,11 @@ namespace QAClothingFactory.API.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Employee");
+                });
+
+            modelBuilder.Entity("QAClothingFactory.API.Models.MaterialRequest", b =>
+                {
+                    b.Navigation("Items");
                 });
 #pragma warning restore 612, 618
         }
