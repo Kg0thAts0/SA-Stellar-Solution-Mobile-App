@@ -1,7 +1,15 @@
 package com.sastellarsolutions.qaclothingfactory.data.remote.dto
 
+// ============================================================
+// INVENTORY DASHBOARD
+// ============================================================
+
 data class InventoryDashboardResponse(
     val success: Boolean,
+    val dashboard: InventoryDashboard
+)
+
+data class InventoryDashboard(
     val totalRawMaterials: Int,
     val lowStockMaterials: Int,
     val outOfStockMaterials: Int,
@@ -11,6 +19,10 @@ data class InventoryDashboardResponse(
     val finishedGoodsStockValue: Double,
     val totalInventoryValue: Double
 )
+
+// ============================================================
+// RAW MATERIALS
+// ============================================================
 
 data class InventoryRawMaterial(
     val materialID: Int,
@@ -38,6 +50,10 @@ data class InventoryRawMaterialResponse(
     val success: Boolean,
     val material: InventoryRawMaterial
 )
+
+// ============================================================
+// FINISHED GOODS
+// ============================================================
 
 data class InventoryFinishedGood(
     val productID: Int,
@@ -68,6 +84,10 @@ data class InventoryFinishedGoodResponse(
     val product: InventoryFinishedGood
 )
 
+// ============================================================
+// COMBINED INVENTORY STOCK
+// ============================================================
+
 data class InventoryStockResponse(
     val success: Boolean,
     val rawMaterialCount: Int,
@@ -76,11 +96,19 @@ data class InventoryStockResponse(
     val finishedGoods: List<InventoryFinishedGood>
 )
 
+// ============================================================
+// LOW-STOCK ALERTS
+// ============================================================
+
 data class LowStockResponse(
     val success: Boolean,
     val count: Int,
     val materials: List<InventoryRawMaterial>
 )
+
+// ============================================================
+// INVENTORY TRANSACTION HISTORY
+// ============================================================
 
 data class InventoryTransactionItem(
     val transactionID: Int,
@@ -109,6 +137,10 @@ data class InventoryTransactionsResponse(
     val transactions: List<InventoryTransactionItem>
 )
 
+// ============================================================
+// CREATE INVENTORY TRANSACTION REQUEST
+// ============================================================
+
 data class InventoryTransactionRequest(
     val materialID: Int? = null,
     val productID: Int? = null,
@@ -118,6 +150,10 @@ data class InventoryTransactionRequest(
     val referenceNumber: String? = null,
     val notes: String? = null
 )
+
+// ============================================================
+// CREATED INVENTORY TRANSACTION
+// ============================================================
 
 data class CreatedInventoryTransaction(
     val transactionID: Int,
@@ -132,6 +168,10 @@ data class CreatedInventoryTransaction(
     val performedBy: Int?,
     val performedByName: String?
 )
+
+// ============================================================
+// CREATE INVENTORY TRANSACTION RESPONSE
+// ============================================================
 
 data class CreateInventoryTransactionResponse(
     val success: Boolean,

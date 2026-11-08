@@ -1,5 +1,9 @@
 package com.sastellarsolutions.qaclothingfactory.data.remote.api
 
+import com.sastellarsolutions.qaclothingfactory.data.remote.dto.CreateMaterialRequestRequest
+import com.sastellarsolutions.qaclothingfactory.data.remote.dto.CreateMaterialRequestResponse
+import com.sastellarsolutions.qaclothingfactory.data.remote.dto.MaterialRequestDetailsResponse
+import com.sastellarsolutions.qaclothingfactory.data.remote.dto.MaterialRequestsResponse
 import com.sastellarsolutions.qaclothingfactory.data.remote.dto.CreateProductionBatchRequest
 import com.sastellarsolutions.qaclothingfactory.data.remote.dto.CreateProductionBatchResponse
 import com.sastellarsolutions.qaclothingfactory.data.remote.dto.DeleteProductionBatchResponse
@@ -11,6 +15,8 @@ import com.sastellarsolutions.qaclothingfactory.data.remote.dto.ProductionReport
 import com.sastellarsolutions.qaclothingfactory.data.remote.dto.ProductionSupervisorsResponse
 import com.sastellarsolutions.qaclothingfactory.data.remote.dto.UpdateProductionBatchRequest
 import com.sastellarsolutions.qaclothingfactory.data.remote.dto.UpdateProductionBatchResponse
+import com.sastellarsolutions.qaclothingfactory.data.remote.dto.MaterialCatalogResponse
+
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -19,7 +25,6 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
-
 
 interface ProductionApiService {
 
@@ -32,13 +37,11 @@ interface ProductionApiService {
         @Header("Authorization") authorization: String
     ): Response<ProductionBatchesResponse>
 
-
     @GET("api/production/batches/{id}")
     suspend fun getProductionBatch(
         @Header("Authorization") authorization: String,
         @Path("id") batchID: Int
     ): Response<ProductionBatchDetailsResponse>
-
 
     // ============================================================
     // PRODUCTION PROGRESS
@@ -49,7 +52,6 @@ interface ProductionApiService {
         @Header("Authorization") authorization: String
     ): Response<ProductionProgressResponse>
 
-
     // ============================================================
     // PRODUCTION REPORTS
     // ============================================================
@@ -58,7 +60,6 @@ interface ProductionApiService {
     suspend fun getProductionReports(
         @Header("Authorization") authorization: String
     ): Response<ProductionReportsResponse>
-
 
     // ============================================================
     // PRODUCTS
@@ -69,7 +70,6 @@ interface ProductionApiService {
         @Header("Authorization") authorization: String
     ): Response<ProductionProductsResponse>
 
-
     // ============================================================
     // SUPERVISORS
     // ============================================================
@@ -78,7 +78,6 @@ interface ProductionApiService {
     suspend fun getSupervisors(
         @Header("Authorization") authorization: String
     ): Response<ProductionSupervisorsResponse>
-
 
     // ============================================================
     // CREATE PRODUCTION BATCH
@@ -89,7 +88,6 @@ interface ProductionApiService {
         @Header("Authorization") authorization: String,
         @Body request: CreateProductionBatchRequest
     ): Response<CreateProductionBatchResponse>
-
 
     // ============================================================
     // UPDATE PRODUCTION BATCH
@@ -102,7 +100,6 @@ interface ProductionApiService {
         @Body request: UpdateProductionBatchRequest
     ): Response<UpdateProductionBatchResponse>
 
-
     // ============================================================
     // DELETE PRODUCTION BATCH
     // ============================================================
@@ -112,4 +109,34 @@ interface ProductionApiService {
         @Header("Authorization") authorization: String,
         @Path("id") batchID: Int
     ): Response<DeleteProductionBatchResponse>
+
+    // ============================================================
+    // MATERIAL CATALOG - PRODUCTION MANAGER
+    // ============================================================
+
+    @GET("api/material-requests/catalog")
+    suspend fun getMaterialCatalog(
+        @Header("Authorization") authorization: String
+    ): Response<MaterialCatalogResponse>
+
+    // ============================================================
+    // MATERIAL REQUESTS - PRODUCTION MANAGER
+    // ============================================================
+
+    @POST("api/material-requests")
+    suspend fun createMaterialRequest(
+        @Header("Authorization") authorization: String,
+        @Body request: CreateMaterialRequestRequest
+    ): Response<CreateMaterialRequestResponse>
+
+    @GET("api/material-requests")
+    suspend fun getMaterialRequests(
+        @Header("Authorization") authorization: String
+    ): Response<MaterialRequestsResponse>
+
+    @GET("api/material-requests/{id}")
+    suspend fun getMaterialRequest(
+        @Header("Authorization") authorization: String,
+        @Path("id") requestID: Int
+    ): Response<MaterialRequestDetailsResponse>
 }

@@ -19,6 +19,9 @@ import com.sastellarsolutions.qaclothingfactory.ui.dashboard.DashboardScreen
 import com.sastellarsolutions.qaclothingfactory.ui.forgotpassword.ForgotPasswordScreen
 import com.sastellarsolutions.qaclothingfactory.ui.help.HelpSupportScreen
 import com.sastellarsolutions.qaclothingfactory.ui.login.LoginScreen
+import com.sastellarsolutions.qaclothingfactory.ui.production.CustomerQuotationDetailsScreen
+import com.sastellarsolutions.qaclothingfactory.ui.production.CustomerQuotationsScreen
+import com.sastellarsolutions.qaclothingfactory.ui.production.CreateMaterialRequestScreen
 import com.sastellarsolutions.qaclothingfactory.ui.production.CreateProductionBatchScreen
 import com.sastellarsolutions.qaclothingfactory.ui.production.EditProductionBatchScreen
 import com.sastellarsolutions.qaclothingfactory.ui.production.ProductionBatchDetailsScreen
@@ -29,6 +32,7 @@ import com.sastellarsolutions.qaclothingfactory.ui.quality.QualityDefectsScreen
 import com.sastellarsolutions.qaclothingfactory.ui.quality.QualityInspectionDetailsScreen
 import com.sastellarsolutions.qaclothingfactory.ui.quality.QualityInspectionsScreen
 import com.sastellarsolutions.qaclothingfactory.ui.quality.QualityReportsScreen
+import com.sastellarsolutions.qaclothingfactory.ui.inventory.AddRawMaterialScreen
 import com.sastellarsolutions.qaclothingfactory.ui.inventory.InventoryStockScreen
 import com.sastellarsolutions.qaclothingfactory.ui.inventory.LowStockScreen
 import com.sastellarsolutions.qaclothingfactory.ui.inventory.StockMovementsScreen
@@ -74,9 +78,15 @@ private enum class AppScreen {
 
     PRODUCTION_REPORTS,
 
+    CUSTOMER_QUOTATIONS,
+
+    CUSTOMER_QUOTATION_DETAILS,
+
     CREATE_PRODUCTION_BATCH,
 
     PRODUCTION_BATCH_DETAILS,
+
+    CREATE_MATERIAL_REQUEST,
 
     EDIT_PRODUCTION_BATCH,
 
@@ -89,6 +99,8 @@ private enum class AppScreen {
     QUALITY_REPORTS,
 
     INVENTORY_STOCK,
+
+    ADD_RAW_MATERIAL,
 
     STOCK_MOVEMENTS,
 
@@ -205,6 +217,15 @@ fun AppNavigation() {
 
     var productionBatchRefreshKey by remember {
         mutableStateOf(0)
+    }
+
+
+    // ========================================================
+    // CUSTOMER QUOTATION NAVIGATION STATE
+    // ========================================================
+
+    var selectedCustomerQuotationID by remember {
+        mutableStateOf<Int?>(null)
     }
 
 
@@ -640,6 +661,21 @@ fun AppNavigation() {
 
 
                     // =========================================
+                    // CUSTOMER QUOTATIONS
+                    // =========================================
+
+                    onCustomerQuotationsClick = {
+                        if (
+                            user.role == UserRole.PRODUCTION_MANAGER ||
+                            user.role == UserRole.ADMIN
+                        ) {
+                            selectedCustomerQuotationID = null
+                            currentScreen = AppScreen.CUSTOMER_QUOTATIONS
+                        }
+                    },
+
+
+                    // =========================================
                     // QUALITY INSPECTIONS
                     // =========================================
 
@@ -714,6 +750,19 @@ fun AppNavigation() {
                         }
                     },
 
+
+                    // =========================================
+                    // ADD RAW MATERIAL
+                    // =========================================
+
+                    onAddRawMaterialClick = {
+                        if (
+                            user.role == UserRole.INVENTORY_CLERK ||
+                            user.role == UserRole.ADMIN
+                        ) {
+                            currentScreen = AppScreen.ADD_RAW_MATERIAL
+                        }
+                    },
 
                     // =========================================
                     // STOCK MOVEMENTS
@@ -1289,6 +1338,82 @@ fun AppNavigation() {
 
 
         // ====================================================
+        // CUSTOMER QUOTATIONS
+        // ====================================================
+
+        AppScreen.CUSTOMER_QUOTATIONS -> {
+            val user = currentUser
+
+            if (user != null && (
+                        user.role == UserRole.PRODUCTION_MANAGER ||
+                                user.role == UserRole.ADMIN
+                        )
+            ) {
+                val token = sessionManager.getToken()
+
+                if (!token.isNullOrBlank()) {
+                    CustomerQuotationsScreen(
+                        token = token,
+                        onBackClick = {
+                            selectedCustomerQuotationID = null
+                            currentScreen = AppScreen.DASHBOARD
+                        },
+                        onQuotationClick = { quotationID ->
+                            selectedCustomerQuotationID = quotationID
+                            currentScreen = AppScreen.CUSTOMER_QUOTATION_DETAILS
+                        }
+                    )
+                } else {
+                    sessionManager.clearSession()
+                    currentUser = null
+                    selectedCustomerQuotationID = null
+                    currentScreen = AppScreen.LOGIN
+                }
+            } else {
+                selectedCustomerQuotationID = null
+                currentScreen = AppScreen.DASHBOARD
+            }
+        }
+
+
+        // ====================================================
+        // CUSTOMER QUOTATION DETAILS AND REVIEW
+        // ====================================================
+
+        AppScreen.CUSTOMER_QUOTATION_DETAILS -> {
+            val user = currentUser
+            val quotationID = selectedCustomerQuotationID
+
+            if (user != null && quotationID != null && (
+                        user.role == UserRole.PRODUCTION_MANAGER ||
+                                user.role == UserRole.ADMIN
+                        )
+            ) {
+                val token = sessionManager.getToken()
+
+                if (!token.isNullOrBlank()) {
+                    CustomerQuotationDetailsScreen(
+                        token = token,
+                        quotationID = quotationID,
+                        onBackClick = {
+                            selectedCustomerQuotationID = null
+                            currentScreen = AppScreen.CUSTOMER_QUOTATIONS
+                        }
+                    )
+                } else {
+                    sessionManager.clearSession()
+                    currentUser = null
+                    selectedCustomerQuotationID = null
+                    currentScreen = AppScreen.LOGIN
+                }
+            } else {
+                selectedCustomerQuotationID = null
+                currentScreen = AppScreen.CUSTOMER_QUOTATIONS
+            }
+        }
+
+
+        // ====================================================
         // CREATE PRODUCTION BATCH
         // ====================================================
 
@@ -1419,6 +1544,11 @@ fun AppNavigation() {
                             selectedProductionBatchID = null
                             productionBatchRefreshKey += 1
                             currentScreen = AppScreen.PRODUCTION_BATCHES
+                        },
+
+                        onRequestMaterialsClick = { selectedBatchID ->
+                            selectedProductionBatchID = selectedBatchID
+                            currentScreen = AppScreen.CREATE_MATERIAL_REQUEST
                         }
                     )
 
@@ -1432,6 +1562,45 @@ fun AppNavigation() {
 
             } else {
 
+                selectedProductionBatchID = null
+                currentScreen = AppScreen.PRODUCTION_BATCHES
+            }
+        }
+
+
+        // ====================================================
+        // CREATE MATERIAL REQUEST
+        // ====================================================
+
+        AppScreen.CREATE_MATERIAL_REQUEST -> {
+            val user = currentUser
+            val batchID = selectedProductionBatchID
+
+            if (user != null && batchID != null &&
+                (user.role == UserRole.PRODUCTION_MANAGER ||
+                        user.role == UserRole.ADMIN)
+            ) {
+                val token = sessionManager.getToken()
+
+                if (!token.isNullOrBlank()) {
+                    CreateMaterialRequestScreen(
+                        token = token,
+                        batchID = batchID,
+                        onBackClick = {
+                            currentScreen = AppScreen.PRODUCTION_BATCH_DETAILS
+                        },
+                        onRequestCreated = {
+                            productionBatchRefreshKey += 1
+                            currentScreen = AppScreen.PRODUCTION_BATCH_DETAILS
+                        }
+                    )
+                } else {
+                    sessionManager.clearSession()
+                    currentUser = null
+                    selectedProductionBatchID = null
+                    currentScreen = AppScreen.LOGIN
+                }
+            } else {
                 selectedProductionBatchID = null
                 currentScreen = AppScreen.PRODUCTION_BATCHES
             }
@@ -1684,6 +1853,40 @@ fun AppNavigation() {
             }
         }
 
+
+        // ====================================================
+        // ADD RAW MATERIAL
+        // ====================================================
+
+        AppScreen.ADD_RAW_MATERIAL -> {
+            val user = currentUser
+
+            if (
+                user != null &&
+                (user.role == UserRole.INVENTORY_CLERK ||
+                        user.role == UserRole.ADMIN)
+            ) {
+                val token = sessionManager.getToken()
+
+                if (!token.isNullOrBlank()) {
+                    AddRawMaterialScreen(
+                        token = token,
+                        onBackClick = {
+                            currentScreen = AppScreen.DASHBOARD
+                        },
+                        onMaterialCreated = {
+                            currentScreen = AppScreen.DASHBOARD
+                        }
+                    )
+                } else {
+                    sessionManager.clearSession()
+                    currentUser = null
+                    currentScreen = AppScreen.LOGIN
+                }
+            } else {
+                currentScreen = AppScreen.DASHBOARD
+            }
+        }
 
         // ====================================================
         // STOCK MOVEMENTS

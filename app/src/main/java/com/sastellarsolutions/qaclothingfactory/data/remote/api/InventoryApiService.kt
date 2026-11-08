@@ -27,6 +27,12 @@ interface InventoryApiService {
         @Path("id") materialID: Int
     ): Response<InventoryRawMaterialResponse>
 
+    @POST("api/inventory/raw-materials")
+    suspend fun createRawMaterial(
+        @Header("Authorization") authorization: String,
+        @Body request: CreateRawMaterialRequest
+    ): Response<CreateRawMaterialResponse>
+
     @GET("api/inventory/finished-goods")
     suspend fun getFinishedGoods(
         @Header("Authorization") authorization: String

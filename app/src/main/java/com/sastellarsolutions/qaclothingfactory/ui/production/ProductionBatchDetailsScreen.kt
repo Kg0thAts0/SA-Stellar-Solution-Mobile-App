@@ -57,7 +57,8 @@ fun ProductionBatchDetailsScreen(
     refreshKey: Int = 0,
     onBackClick: () -> Unit,
     onEditClick: (Int) -> Unit,
-    onBatchDeleted: () -> Unit
+    onBatchDeleted: () -> Unit,
+    onRequestMaterialsClick: (Int) -> Unit
 ) {
 
     val repository =
@@ -572,6 +573,20 @@ fun ProductionBatchDetailsScreen(
                     text =
                         "Edit Production Order"
                 )
+            }
+
+
+            // =================================================
+            // REQUEST MATERIALS FOR THIS PRODUCTION ORDER
+            // =================================================
+
+            OutlinedButton(
+                onClick = {
+                    onRequestMaterialsClick(productionBatch.batchID)
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(text = "Request Materials")
             }
 
 

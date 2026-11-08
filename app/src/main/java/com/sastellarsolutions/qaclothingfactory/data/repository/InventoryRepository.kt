@@ -104,6 +104,41 @@ class InventoryRepository {
         }
     }
 
+    suspend fun createRawMaterial(
+        token: String,
+        materialCode: String,
+        materialName: String,
+        category: String? = null,
+        unit: String,
+        currentStock: Double = 0.0,
+        minimumStock: Double = 0.0,
+        reorderLevel: Double = 0.0,
+        unitCost: Double = 0.0,
+        supplierInfo: String? = null
+    ): Result<CreateRawMaterialResponse> {
+        if (materialCode.isBlank() || materialName.isBlank() || unit.isBlank()) {
+            return Result.Error("Material code, name and unit are required.")
+        }
+        val values = listOf(currentStock, minimumStock, reorderLevel, unitCost)
+        if (values.any { !it.isFinite() || it < 0.0 }) {
+            return Result.Error("Stock and cost values must be finite and non-negative.")
+        }
+        val request = CreateRawMaterialRequest(
+            materialCode = materialCode.trim(),
+            materialName = materialName.trim(),
+            category = category?.trim()?.takeIf { it.isNotEmpty() },
+            unit = unit.trim(),
+            currentStock = currentStock,
+            minimumStock = minimumStock,
+            reorderLevel = reorderLevel,
+            unitCost = unitCost,
+            supplierInfo = supplierInfo?.trim()?.takeIf { it.isNotEmpty() }
+        )
+        return execute("Unable to register raw material.") {
+            inventoryApi.createRawMaterial(bearerToken(token), request)
+        }
+    }
+
     suspend fun createTransaction(
         token: String,
         materialID: Int? = null,

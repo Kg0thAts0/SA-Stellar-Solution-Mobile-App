@@ -2,37 +2,41 @@ package com.sastellarsolutions.qaclothingfactory.data.remote.network
 
 import com.sastellarsolutions.qaclothingfactory.data.remote.api.AdminApiService
 import com.sastellarsolutions.qaclothingfactory.data.remote.api.AuthApiService
+import com.sastellarsolutions.qaclothingfactory.data.remote.api.CustomerQuotationApiService
 import com.sastellarsolutions.qaclothingfactory.data.remote.api.InventoryApiService
 import com.sastellarsolutions.qaclothingfactory.data.remote.api.ProductionApiService
 import com.sastellarsolutions.qaclothingfactory.data.remote.api.QualityApiService
 import com.sastellarsolutions.qaclothingfactory.data.remote.api.SupervisorApiService
+
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
+
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+
 import java.util.concurrent.TimeUnit
 
 object RetrofitClient {
 
-    // ========================================================
-    // LOCAL DEVELOPMENT API
-    // ========================================================
+    // ============================================================
+    // RENDER API BASE URL
+    // ============================================================
 
     private const val BASE_URL =
         "https://sa-stellar-solution-mobile-app.onrender.com/"
 
-    // ========================================================
+    // ============================================================
     // HTTP LOGGING
-    // ========================================================
+    // ============================================================
 
     private val loggingInterceptor =
         HttpLoggingInterceptor().apply {
-            level = HttpLoggingInterceptor.Level.BODY
+            level = HttpLoggingInterceptor.Level.BASIC
         }
 
-    // ========================================================
+    // ============================================================
     // OKHTTP CLIENT
-    // ========================================================
+    // ============================================================
 
     private val httpClient =
         OkHttpClient.Builder()
@@ -42,9 +46,9 @@ object RetrofitClient {
             .writeTimeout(30, TimeUnit.SECONDS)
             .build()
 
-    // ========================================================
+    // ============================================================
     // RETROFIT
-    // ========================================================
+    // ============================================================
 
     private val retrofit =
         Retrofit.Builder()
@@ -53,44 +57,51 @@ object RetrofitClient {
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
-    // ========================================================
+    // ============================================================
     // AUTHENTICATION API
-    // ========================================================
+    // ============================================================
 
     val authApi: AuthApiService =
         retrofit.create(AuthApiService::class.java)
 
-    // ========================================================
+    // ============================================================
     // ADMIN API
-    // ========================================================
+    // ============================================================
 
     val adminApi: AdminApiService =
         retrofit.create(AdminApiService::class.java)
 
-    // ========================================================
+    // ============================================================
     // PRODUCTION API
-    // ========================================================
+    // ============================================================
 
     val productionApi: ProductionApiService =
         retrofit.create(ProductionApiService::class.java)
 
-    // ========================================================
+    // ============================================================
+    // CUSTOMER QUOTATION API
+    // ============================================================
+
+    val customerQuotationApi: CustomerQuotationApiService =
+        retrofit.create(CustomerQuotationApiService::class.java)
+
+    // ============================================================
     // QUALITY CONTROL API
-    // ========================================================
+    // ============================================================
 
     val qualityApi: QualityApiService =
         retrofit.create(QualityApiService::class.java)
 
-    // ========================================================
+    // ============================================================
     // INVENTORY CLERK API
-    // ========================================================
+    // ============================================================
 
     val inventoryApi: InventoryApiService =
         retrofit.create(InventoryApiService::class.java)
 
-    // ========================================================
+    // ============================================================
     // SUPERVISOR API
-    // ========================================================
+    // ============================================================
 
     val supervisorApi: SupervisorApiService =
         retrofit.create(SupervisorApiService::class.java)

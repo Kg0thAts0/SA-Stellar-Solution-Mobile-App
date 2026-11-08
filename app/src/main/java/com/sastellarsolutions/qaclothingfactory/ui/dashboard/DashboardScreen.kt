@@ -72,6 +72,8 @@ fun DashboardScreen(
 
     onProductionReportsClick: () -> Unit = {},
 
+    onCustomerQuotationsClick: () -> Unit = {},
+
     onQualityInspectionsClick: () -> Unit = {},
 
     onQualityDefectsClick: () -> Unit = {},
@@ -79,6 +81,8 @@ fun DashboardScreen(
     onQualityReportsClick: () -> Unit = {},
 
     onInventoryStockClick: () -> Unit = {},
+
+    onAddRawMaterialClick: () -> Unit = {},
 
     onStockMovementsClick: () -> Unit = {},
 
@@ -369,7 +373,10 @@ fun DashboardScreen(
                             onProductionProgressClick,
 
                         onProductionReportsClick =
-                            onProductionReportsClick
+                            onProductionReportsClick,
+
+                        onCustomerQuotationsClick =
+                            onCustomerQuotationsClick
                     )
                 }
 
@@ -394,6 +401,9 @@ fun DashboardScreen(
                     InventoryDashboardContent(
                         onInventoryStockClick =
                             onInventoryStockClick,
+
+                        onAddRawMaterialClick =
+                            onAddRawMaterialClick,
 
                         onStockMovementsClick =
                             onStockMovementsClick,
@@ -1253,7 +1263,9 @@ private fun ProductionManagerDashboardContent(
 
     onProductionProgressClick: () -> Unit,
 
-    onProductionReportsClick: () -> Unit
+    onProductionReportsClick: () -> Unit,
+
+    onCustomerQuotationsClick: () -> Unit
 
 ) {
 
@@ -1311,6 +1323,22 @@ private fun ProductionManagerDashboardContent(
 
         onClick =
             onProductionReportsClick
+    )
+
+    // ========================================================
+    // CUSTOMER QUOTATIONS
+    // ========================================================
+
+    DashboardCard(
+
+        title =
+            "Customer Quotations",
+
+        description =
+            "View customer requests, review specifications, and manage quotation statuses.",
+
+        onClick =
+            onCustomerQuotationsClick
     )
 }
 
@@ -1385,6 +1413,8 @@ private fun InventoryDashboardContent(
 
     onInventoryStockClick: () -> Unit,
 
+    onAddRawMaterialClick: () -> Unit,
+
     onStockMovementsClick: () -> Unit,
 
     onLowStockClick: () -> Unit
@@ -1407,6 +1437,19 @@ private fun InventoryDashboardContent(
 
         onClick =
             onInventoryStockClick
+    )
+
+
+    DashboardCard(
+
+        title =
+            "Add Raw Material",
+
+        description =
+            "Register a new material for factory production and stock tracking.",
+
+        onClick =
+            onAddRawMaterialClick
     )
 
 
