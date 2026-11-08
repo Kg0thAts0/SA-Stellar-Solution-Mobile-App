@@ -178,6 +178,85 @@ namespace QAClothingFactory.API.Controllers
         }
 
         // ============================================================
+        // REGISTER RAW MATERIAL
+        // POST: /api/inventory/raw-materials
+        // ============================================================
+
+        [HttpPost("raw-materials")]
+        public async Task<IActionResult> CreateRawMaterial(
+            [FromBody] CreateRawMaterialRequest request)
+        {
+            if (request == null)
+                return BadRequest(new { success = false, message = "Material information is required." });
+
+            var code = request.MaterialCode?.Trim();
+            var name = request.MaterialName?.Trim();
+            var unit = request.Unit?.Trim();
+
+            if (string.IsNullOrWhiteSpace(code))
+                return BadRequest(new { success = false, message = "Material code is required." });
+
+            if (string.IsNullOrWhiteSpace(name))
+                return BadRequest(new { success = false, message = "Material name is required." });
+
+            if (string.IsNullOrWhiteSpace(unit))
+                return BadRequest(new { success = false, message = "Unit is required." });
+
+            if (request.CurrentStock < 0 || request.MinimumStock < 0 ||
+                request.ReorderLevel < 0 || request.UnitCost < 0)
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Stock quantities and unit cost cannot be negative."
+                });
+
+            var employee = await GetCurrentEmployeeAsync();
+            if (employee == null)
+                return Unauthorized(new
+                {
+                    success = false,
+                    message = "The logged-in employee could not be verified."
+                });
+
+            var exists = await _context.RawMaterials
+                .AnyAsync(m => m.MaterialCode.ToLower() == code.ToLower());
+
+            if (exists)
+                return Conflict(new
+                {
+                    success = false,
+                    message = "A raw material with this code already exists."
+                });
+
+            var material = new RawMaterial
+            {
+                MaterialCode = code,
+                MaterialName = name,
+                Category = CleanOptionalText(request.Category),
+                Unit = unit,
+                CurrentStock = request.CurrentStock,
+                MinimumStock = request.MinimumStock,
+                ReorderLevel = request.ReorderLevel,
+                UnitCost = request.UnitCost,
+                SupplierInfo = CleanOptionalText(request.SupplierInfo),
+                LastUpdated = DateTime.UtcNow,
+                UpdatedBy = employee.EmployeeID
+            };
+
+            _context.RawMaterials.Add(material);
+            await _context.SaveChangesAsync();
+
+            return CreatedAtAction(nameof(GetRawMaterial),
+                new { id = material.MaterialID },
+                new
+                {
+                    success = true,
+                    message = "Raw material registered successfully.",
+                    material
+                });
+        }
+
+        // ============================================================
         // RAW MATERIAL DETAILS
         // GET: /api/inventory/raw-materials/{id}
         // ============================================================
@@ -800,4 +879,19 @@ namespace QAClothingFactory.API.Controllers
 
         public string? Notes { get; set; }
     }
+
+    // Request body for POST /api/inventory/raw-materials
+    public class CreateRawMaterialRequest
+    {
+        public string MaterialCode { get; set; } = string.Empty;
+        public string MaterialName { get; set; } = string.Empty;
+        public string? Category { get; set; }
+        public string Unit { get; set; } = string.Empty;
+        public decimal CurrentStock { get; set; }
+        public decimal MinimumStock { get; set; }
+        public decimal ReorderLevel { get; set; }
+        public decimal UnitCost { get; set; }
+        public string? SupplierInfo { get; set; }
+    }
+
 }
