@@ -86,9 +86,7 @@ fun DailyUpdatesScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
-                TextButton(onClick = onBackClick) {
-                    Text("Back")
-                }
+                SupervisorBackButton(onBackClick = onBackClick)
 
                 Text(
                     text = "Daily Updates",
@@ -850,4 +848,3 @@ private fun normalizeApiTime(value: String): String? {
         value
     }
 }
-

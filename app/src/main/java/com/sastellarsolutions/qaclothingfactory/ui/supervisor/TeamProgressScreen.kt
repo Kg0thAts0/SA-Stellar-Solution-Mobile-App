@@ -71,9 +71,7 @@ fun TeamProgressScreen(
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
-                TextButton(onClick = onBackClick) {
-                    Text("Back")
-                }
+                SupervisorBackButton(onBackClick = onBackClick)
 
                 Text(
                     text = "Team Progress",

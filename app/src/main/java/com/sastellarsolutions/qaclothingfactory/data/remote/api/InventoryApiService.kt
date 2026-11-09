@@ -6,6 +6,24 @@ import retrofit2.http.*
 
 interface InventoryApiService {
 
+    @GET("api/material-requests")
+    suspend fun getMaterialRequests(
+        @Header("Authorization") authorization: String
+    ): Response<MaterialRequestsResponse>
+
+    @GET("api/material-requests/{id}")
+    suspend fun getMaterialRequest(
+        @Header("Authorization") authorization: String,
+        @Path("id") requestID: Int
+    ): Response<MaterialRequestDetailsResponse>
+
+    @POST("api/material-requests/{id}/issue")
+    suspend fun issueMaterialRequest(
+        @Header("Authorization") authorization: String,
+        @Path("id") requestID: Int,
+        @Body request: IssueMaterialRequestRequest
+    ): Response<IssueMaterialRequestResponse>
+
     @GET("api/inventory/dashboard")
     suspend fun getDashboard(
         @Header("Authorization") authorization: String

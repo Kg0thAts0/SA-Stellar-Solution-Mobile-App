@@ -86,6 +86,8 @@ fun DashboardScreen(
 
     onStockMovementsClick: () -> Unit = {},
 
+    onMaterialRequestsClick: () -> Unit = {},
+
     onLowStockClick: () -> Unit = {},
 
     onMyShiftsClick: () -> Unit = {},
@@ -407,6 +409,9 @@ fun DashboardScreen(
 
                         onStockMovementsClick =
                             onStockMovementsClick,
+
+                        onMaterialRequestsClick =
+                            onMaterialRequestsClick,
 
                         onLowStockClick =
                             onLowStockClick
@@ -1417,6 +1422,8 @@ private fun InventoryDashboardContent(
 
     onStockMovementsClick: () -> Unit,
 
+    onMaterialRequestsClick: () -> Unit,
+
     onLowStockClick: () -> Unit
 
 ) {
@@ -1452,6 +1459,12 @@ private fun InventoryDashboardContent(
             onAddRawMaterialClick
     )
 
+
+    DashboardCard(
+        title = "Material Requests",
+        description = "Review production requests and issue raw materials.",
+        onClick = onMaterialRequestsClick
+    )
 
     DashboardCard(
 

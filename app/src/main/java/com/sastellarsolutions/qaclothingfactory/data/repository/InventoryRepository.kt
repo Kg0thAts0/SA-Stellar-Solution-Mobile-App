@@ -1,6 +1,8 @@
 package com.sastellarsolutions.qaclothingfactory.data.repository
 
 import com.google.gson.Gson
+import kotlinx.coroutines.CancellationException
+import java.math.BigDecimal
 import com.sastellarsolutions.qaclothingfactory.data.remote.dto.*
 import com.sastellarsolutions.qaclothingfactory.data.remote.network.RetrofitClient
 
@@ -12,6 +14,81 @@ class InventoryRepository {
     sealed class Result<out T> {
         data class Success<T>(val data: T) : Result<T>()
         data class Error(val message: String) : Result<Nothing>()
+    }
+
+    suspend fun getMaterialRequests(token: String): Result<List<MaterialRequestResponse>> {
+        return try {
+            val response = inventoryApi.getMaterialRequests(bearerToken(token))
+            val body = response.body()
+            if (response.isSuccessful && body != null && body.success) {
+                Result.Success(body.requests)
+            } else {
+                Result.Error(getErrorMessage(response.code(), response.errorBody()?.string()))
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            Result.Error("Unable to load material requests. Please check your connection.")
+        }
+    }
+
+    suspend fun getMaterialRequest(token: String, requestID: Int): Result<MaterialRequestResponse> {
+        if (requestID <= 0) return Result.Error("Invalid material request ID.")
+        return try {
+            val response = inventoryApi.getMaterialRequest(bearerToken(token), requestID)
+            val body = response.body()
+            if (response.isSuccessful && body != null && body.success) {
+                Result.Success(body.request)
+            } else {
+                Result.Error(getErrorMessage(response.code(), response.errorBody()?.string()))
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            Result.Error("Unable to load material request details. Please check your connection.")
+        }
+    }
+
+    suspend fun issueMaterialRequest(
+        token: String,
+        requestID: Int,
+        items: List<IssueMaterialRequestItem>
+    ): Result<IssueMaterialRequestResponse> {
+        if (requestID <= 0) return Result.Error("Invalid material request ID.")
+        if (items.isEmpty()) return Result.Error("Select at least one item to issue.")
+        if (items.map { it.requestItemID }.distinct().size != items.size) {
+            return Result.Error("Each request item may only be included once.")
+        }
+        for (item in items) {
+            val quantity = item.quantity
+            if (item.requestItemID <= 0 || !quantity.isFinite() || quantity <= 0.0 ||
+                BigDecimal.valueOf(quantity).stripTrailingZeros().scale() > 2 ||
+                quantity > 999999999.99
+            ) {
+                return Result.Error("Enter positive issue quantities with at most two decimal places.")
+            }
+        }
+        return try {
+            val response = inventoryApi.issueMaterialRequest(
+                bearerToken(token), requestID, IssueMaterialRequestRequest(items)
+            )
+            val body = response.body()
+            if (response.isSuccessful && body != null && body.success) {
+                Result.Success(body)
+            } else {
+                Result.Error(getErrorMessage(response.code(), response.errorBody()?.string()))
+            }
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: CancellationException) {
+            throw e
+        } catch (_: Exception) {
+            Result.Error("Unable to issue materials. Please check your connection and refresh the request before retrying.")
+        }
     }
 
     suspend fun getDashboard(token: String): Result<InventoryDashboardResponse> =
@@ -32,6 +109,8 @@ class InventoryRepository {
             } else {
                 Result.Error(getErrorMessage(response.code(), response.errorBody()?.string()))
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Exception) {
             Result.Error("Unable to load raw materials. Please check your connection and try again.")
         }
@@ -45,6 +124,8 @@ class InventoryRepository {
             } else {
                 Result.Error(getErrorMessage(response.code(), response.errorBody()?.string()))
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Exception) {
             Result.Error("Unable to load the raw material.")
         }
@@ -58,6 +139,8 @@ class InventoryRepository {
             } else {
                 Result.Error(getErrorMessage(response.code(), response.errorBody()?.string()))
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Exception) {
             Result.Error("Unable to load finished goods. Please check your connection and try again.")
         }
@@ -71,6 +154,8 @@ class InventoryRepository {
             } else {
                 Result.Error(getErrorMessage(response.code(), response.errorBody()?.string()))
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Exception) {
             Result.Error("Unable to load the finished good.")
         }
@@ -99,6 +184,8 @@ class InventoryRepository {
             } else {
                 Result.Error(getErrorMessage(response.code(), response.errorBody()?.string()))
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Exception) {
             Result.Error("Unable to load stock movements. Please check your connection and try again.")
         }
@@ -161,11 +248,11 @@ class InventoryRepository {
             return Result.Error("Transaction type must be Receipt, Issue, Adjustment or Return.")
         }
 
-        if (quantity <= 0.0) {
+        if (!quantity.isFinite() || quantity <= 0.0) {
             return Result.Error("Quantity must be greater than zero.")
         }
 
-        if (unitCost != null && unitCost < 0.0) {
+        if (unitCost != null && (!unitCost.isFinite() || unitCost < 0.0)) {
             return Result.Error("Unit cost cannot be negative.")
         }
 
@@ -189,6 +276,8 @@ class InventoryRepository {
             } else {
                 Result.Error(getErrorMessage(response.code(), response.errorBody()?.string()))
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Exception) {
             Result.Error("Unable to record the inventory transaction. Please check your connection and try again.")
         }
@@ -205,6 +294,8 @@ class InventoryRepository {
             } else {
                 Result.Error(getErrorMessage(response.code(), response.errorBody()?.string()))
             }
+        } catch (e: CancellationException) {
+            throw e
         } catch (_: Exception) {
             Result.Error("$fallbackMessage Please check your connection and try again.")
         }

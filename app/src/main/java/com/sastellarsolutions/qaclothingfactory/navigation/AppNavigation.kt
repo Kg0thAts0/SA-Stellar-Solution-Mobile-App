@@ -33,6 +33,8 @@ import com.sastellarsolutions.qaclothingfactory.ui.quality.QualityInspectionDeta
 import com.sastellarsolutions.qaclothingfactory.ui.quality.QualityInspectionsScreen
 import com.sastellarsolutions.qaclothingfactory.ui.quality.QualityReportsScreen
 import com.sastellarsolutions.qaclothingfactory.ui.inventory.AddRawMaterialScreen
+import com.sastellarsolutions.qaclothingfactory.ui.inventory.InventoryMaterialRequestsScreen
+import com.sastellarsolutions.qaclothingfactory.ui.inventory.InventoryMaterialRequestDetailsScreen
 import com.sastellarsolutions.qaclothingfactory.ui.inventory.InventoryStockScreen
 import com.sastellarsolutions.qaclothingfactory.ui.inventory.LowStockScreen
 import com.sastellarsolutions.qaclothingfactory.ui.inventory.StockMovementsScreen
@@ -99,6 +101,10 @@ private enum class AppScreen {
     QUALITY_REPORTS,
 
     INVENTORY_STOCK,
+
+    INVENTORY_MATERIAL_REQUESTS,
+
+    INVENTORY_MATERIAL_REQUEST_DETAILS,
 
     ADD_RAW_MATERIAL,
 
@@ -245,6 +251,8 @@ fun AppNavigation() {
         mutableStateOf(AppScreen.QUALITY_INSPECTIONS)
     }
 
+
+    var selectedInventoryRequestID by remember { mutableStateOf<Int?>(null) }
 
     // ========================================================
     // SCREEN ROUTING
@@ -767,6 +775,13 @@ fun AppNavigation() {
                     // =========================================
                     // STOCK MOVEMENTS
                     // =========================================
+
+                    onMaterialRequestsClick = {
+                        if (user.role == UserRole.INVENTORY_CLERK || user.role == UserRole.ADMIN) {
+                            selectedInventoryRequestID = null
+                            currentScreen = AppScreen.INVENTORY_MATERIAL_REQUESTS
+                        }
+                    },
 
                     onStockMovementsClick = {
 
@@ -1811,6 +1826,52 @@ fun AppNavigation() {
             }
         }
 
+
+        AppScreen.INVENTORY_MATERIAL_REQUESTS -> {
+            val user = currentUser
+            if (user != null && (user.role == UserRole.INVENTORY_CLERK || user.role == UserRole.ADMIN)) {
+                val token = sessionManager.getToken()
+                if (!token.isNullOrBlank()) {
+                    InventoryMaterialRequestsScreen(
+                        token = token,
+                        onBackClick = { currentScreen = AppScreen.DASHBOARD },
+                        onRequestClick = { id ->
+                            selectedInventoryRequestID = id
+                            currentScreen = AppScreen.INVENTORY_MATERIAL_REQUEST_DETAILS
+                        }
+                    )
+                } else {
+                    sessionManager.clearSession()
+                    currentUser = null
+                    currentScreen = AppScreen.LOGIN
+                }
+            } else {
+                currentScreen = AppScreen.DASHBOARD
+            }
+        }
+
+        AppScreen.INVENTORY_MATERIAL_REQUEST_DETAILS -> {
+            val user = currentUser
+            val requestID = selectedInventoryRequestID
+            if (user != null && requestID != null &&
+                (user.role == UserRole.INVENTORY_CLERK || user.role == UserRole.ADMIN)
+            ) {
+                val token = sessionManager.getToken()
+                if (!token.isNullOrBlank()) {
+                    InventoryMaterialRequestDetailsScreen(
+                        token = token,
+                        requestID = requestID,
+                        onBackClick = { currentScreen = AppScreen.INVENTORY_MATERIAL_REQUESTS }
+                    )
+                } else {
+                    sessionManager.clearSession()
+                    currentUser = null
+                    currentScreen = AppScreen.LOGIN
+                }
+            } else {
+                currentScreen = AppScreen.DASHBOARD
+            }
+        }
 
         // ====================================================
         // INVENTORY STOCK
