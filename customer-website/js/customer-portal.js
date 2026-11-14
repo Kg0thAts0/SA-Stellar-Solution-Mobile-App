@@ -5,6 +5,7 @@
  * 1. Quotation tracking
  * 2. Order-related tracking
  * 3. Quotation acceptance and rejection
+ * 4. Verification of uncertain decision outcomes
  *
  * Existing API endpoints:
  * POST /api/CustomerQuotations/track
@@ -162,6 +163,10 @@
         );
     }
 
+    // ==========================================
+    // API REQUEST HELPER
+    // ==========================================
+
     async function postJson(endpoint, payload) {
         let response;
 
@@ -181,18 +186,23 @@
                 }
             );
         } catch (_) {
-            throw new Error(
-                'Unable to connect to the server. ' +
-                'Check your internet connection and try again.'
+            const error = new Error(
+                'The server response could not be received. ' +
+                'Your request may still have been processed.'
             );
+
+            error.uncertainOutcome = true;
+            throw error;
         }
 
         let data = null;
+        let responseParsed = false;
 
         try {
             data = await response.json();
+            responseParsed = true;
         } catch (_) {
-            // Some server errors have no JSON body.
+            // Some responses may have no JSON body.
         }
 
         if (!response.ok) {
@@ -201,14 +211,25 @@
             );
         }
 
-        if (!data || data.success !== true) {
-            throw new Error(
+        if (
+            !responseParsed ||
+            !data ||
+            data.success !== true
+        ) {
+            const error = new Error(
                 'The server returned an unexpected response.'
             );
+
+            error.uncertainOutcome = true;
+            throw error;
         }
 
         return data;
     }
+
+    // ==========================================
+    // FORMATTING HELPERS
+    // ==========================================
 
     function formatCurrency(value) {
         if (
@@ -287,6 +308,10 @@
             ).toLowerCase() === 'pending'
         );
     }
+
+    // ==========================================
+    // DISPLAY HELPERS
+    // ==========================================
 
     function addDetail(container, label, value) {
         if (!container) return;
@@ -517,7 +542,7 @@
                 quotation.referenceNumber
             );
 
-            // Never include the PIN in the URL.
+            // Never include the tracking PIN in the URL.
             decisionLink.href = url.toString();
         }
 
@@ -865,6 +890,10 @@
             hideMessage(message);
         });
 
+        // --------------------------------------
+        // VERIFY QUOTATION
+        // --------------------------------------
+
         form.addEventListener(
             'submit',
             async function (event) {
@@ -954,6 +983,10 @@
             }
         );
 
+        // --------------------------------------
+        // SUBMIT ACCEPT / REJECT DECISION
+        // --------------------------------------
+
         async function submitDecision(decision) {
             if (
                 requestInProgress ||
@@ -1032,10 +1065,85 @@
                     false
                 );
 
-                verifiedCredentials = null;
-
             } catch (error) {
-                verifiedCredentials = null;
+
+                // The server may have saved the decision
+                // even if the browser lost the response.
+                // Check the existing record once.
+                // Do not submit the decision again.
+
+                if (
+                    error.uncertainOutcome &&
+                    verifiedCredentials
+                ) {
+                    showMessage(
+                        message,
+                        'Checking whether your decision was recorded...',
+                        false
+                    );
+
+                    try {
+                        const tracked = await postJson(
+                            TRACK_ENDPOINT,
+                            {
+                                referenceNumber:
+                                    verifiedCredentials.referenceNumber,
+
+                                trackingPin:
+                                    verifiedCredentials.trackingPin
+                            }
+                        );
+
+                        if (tracked.quotation) {
+                            verifiedQuotation =
+                                tracked.quotation;
+
+                            renderDecisionDetails(
+                                verifiedQuotation
+                            );
+
+                            const recorded = normalizeDecision(
+                                verifiedQuotation.customerDecision
+                            );
+
+                            if (
+                                recorded.toLowerCase() ===
+                                decision.toLowerCase()
+                            ) {
+                                showMessage(
+                                    message,
+                                    'Your quotation was ' +
+                                    recorded.toLowerCase() +
+                                    ' successfully. The recorded ' +
+                                    'decision has been confirmed.',
+                                    false
+                                );
+
+                                return;
+                            }
+
+                            if (
+                                recorded.toLowerCase() !==
+                                'pending'
+                            ) {
+                                showMessage(
+                                    message,
+                                    'A decision of ' +
+                                    recorded +
+                                    ' is already recorded for this ' +
+                                    'quotation. No additional decision ' +
+                                    'was submitted.',
+                                    false
+                                );
+
+                                return;
+                            }
+                        }
+                    } catch (_) {
+                        // Tracking verification may also fail.
+                        // Do not assume the decision was not saved.
+                    }
+                }
 
                 if (acceptButton) {
                     acceptButton.disabled = true;
@@ -1045,20 +1153,37 @@
                     declineButton.disabled = true;
                 }
 
-                showMessage(
-                    message,
-                    (
-                        error.message ||
-                        'Unable to submit your decision.'
-                    ) +
-                    ' Please verify the quotation again ' +
-                    'before attempting another decision.',
-                    true
-                );
+                if (error.uncertainOutcome) {
+                    showMessage(
+                        message,
+                        'The decision could not be confirmed. ' +
+                        'It may already have been recorded. ' +
+                        'Verify the quotation again before taking ' +
+                        'any further action.',
+                        true
+                    );
+                } else {
+                    showMessage(
+                        message,
+                        (
+                            error.message ||
+                            'Unable to submit your decision.'
+                        ) +
+                        ' Please verify the quotation again ' +
+                        'before attempting another decision.',
+                        true
+                    );
+                }
+
             } finally {
+                verifiedCredentials = null;
                 requestInProgress = false;
             }
         }
+
+        // --------------------------------------
+        // ACCEPT BUTTON
+        // --------------------------------------
 
         if (acceptButton) {
             acceptButton.addEventListener(
@@ -1068,6 +1193,10 @@
                 }
             );
         }
+
+        // --------------------------------------
+        // REJECT BUTTON
+        // --------------------------------------
 
         if (declineButton) {
             declineButton.addEventListener(
@@ -1080,7 +1209,7 @@
     }
 
     // ==========================================
-    // INITIALIZE THE CURRENT PAGE
+    // INITIALIZE WEBSITE PAGES
     // ==========================================
 
     prefillReference();
