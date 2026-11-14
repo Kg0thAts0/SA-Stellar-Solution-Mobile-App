@@ -8,7 +8,7 @@
 
         public string EmailAddress { get; set; } = string.Empty;
 
-        public string Role { get; set; } = string.Empty;
+        public string? Role { get; set; }
 
         public string? EmployeeStatus { get; set; }
 

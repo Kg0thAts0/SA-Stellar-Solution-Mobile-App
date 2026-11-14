@@ -11,10 +11,7 @@ namespace QAClothingFactory.API.Services
     {
         private readonly JwtSettings _jwtSettings;
 
-
-        public TokenService(
-            IConfiguration configuration
-        )
+        public TokenService(IConfiguration configuration)
         {
             _jwtSettings =
                 configuration
@@ -25,138 +22,109 @@ namespace QAClothingFactory.API.Services
                 );
         }
 
-
         // ====================================================
-        // CREATE JWT
+        // CREATE EMPLOYEE JWT
         // ====================================================
 
         public (string Token, DateTime ExpiresAt)
             CreateToken(Employee employee)
         {
-            // =================================================
-            // VALIDATE EMPLOYEE
-            // =================================================
-
             ArgumentNullException.ThrowIfNull(employee);
 
-
-            // =================================================
-            // VALIDATE EMPLOYEE ROLE
-            // =================================================
-
-            // Employees must have an assigned role before
-            // receiving a JWT authentication token.
-
+            // Employees without assigned roles must not
+            // receive an authenticated employee JWT.
             if (string.IsNullOrWhiteSpace(employee.Role))
             {
                 throw new InvalidOperationException(
-                    "Cannot generate a JWT for an employee without an assigned role."
+                    "Cannot generate an employee token " +
+                    "because the employee has no assigned role."
                 );
             }
 
+            if (string.IsNullOrWhiteSpace(employee.FullName) ||
+                string.IsNullOrWhiteSpace(employee.EmailAddress))
+            {
+                throw new InvalidOperationException(
+                    "Employee name or email address is missing."
+                );
+            }
 
-            // =================================================
-            // TOKEN EXPIRATION
-            // =================================================
+            if (string.IsNullOrWhiteSpace(_jwtSettings.Key))
+            {
+                throw new InvalidOperationException(
+                    "JWT signing key is missing."
+                );
+            }
+
+            if (_jwtSettings.ExpirationMinutes <= 0)
+            {
+                throw new InvalidOperationException(
+                    "JWT expiration must be greater than zero."
+                );
+            }
 
             var expiresAt =
                 DateTime.UtcNow.AddMinutes(
                     _jwtSettings.ExpirationMinutes
                 );
 
-
             // =================================================
-            // CLAIMS
+            // EMPLOYEE CLAIMS
             // =================================================
 
-            var claims =
-                new List<Claim>
-                {
-                    new Claim(
-                        ClaimTypes.NameIdentifier,
-                        employee.EmployeeID.ToString()
-                    ),
+            var claims = new List<Claim>
+            {
+                new Claim(
+                    ClaimTypes.NameIdentifier,
+                    employee.EmployeeID.ToString()
+                ),
 
-                    new Claim(
-                        ClaimTypes.Name,
-                        employee.FullName
-                    ),
+                new Claim(
+                    ClaimTypes.Name,
+                    employee.FullName
+                ),
 
-                    new Claim(
-                        ClaimTypes.Email,
-                        employee.EmailAddress
-                    ),
+                new Claim(
+                    ClaimTypes.Email,
+                    employee.EmailAddress
+                ),
 
-                    new Claim(
-                        ClaimTypes.Role,
-                        employee.Role
-                    )
-                };
-
+                new Claim(
+                    ClaimTypes.Role,
+                    employee.Role
+                )
+            };
 
             // =================================================
             // SIGNING KEY
             // =================================================
 
-            var key =
-                new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(
-                        _jwtSettings.Key
-                    )
-                );
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(_jwtSettings.Key)
+            );
 
-
-            // =================================================
-            // SIGNING CREDENTIALS
-            // =================================================
-
-            var credentials =
-                new SigningCredentials(
-                    key,
-                    SecurityAlgorithms.HmacSha256
-                );
-
+            var credentials = new SigningCredentials(
+                key,
+                SecurityAlgorithms.HmacSha256
+            );
 
             // =================================================
-            // GENERATE JWT TOKEN
+            // CREATE JWT
             // =================================================
 
-            var token =
-                new JwtSecurityToken(
-                    issuer:
-                        _jwtSettings.Issuer,
-
-                    audience:
-                        _jwtSettings.Audience,
-
-                    claims:
-                        claims,
-
-                    expires:
-                        expiresAt,
-
-                    signingCredentials:
-                        credentials
-                );
-
-
-            // =================================================
-            // CONVERT TOKEN TO STRING
-            // =================================================
+            var token = new JwtSecurityToken(
+                issuer: _jwtSettings.Issuer,
+                audience: _jwtSettings.Audience,
+                claims: claims,
+                expires: expiresAt,
+                signingCredentials: credentials
+            );
 
             var tokenString =
                 new JwtSecurityTokenHandler()
                     .WriteToken(token);
 
-
-            // =================================================
-            // RETURN TOKEN AND EXPIRATION
-            // =================================================
-
-            return (
-                tokenString,
-                expiresAt
-            );
+            return (tokenString, expiresAt);
         }
     }
 }

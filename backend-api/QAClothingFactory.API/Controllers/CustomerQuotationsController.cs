@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,6 +18,7 @@ namespace QAClothingFactory.API.Controllers
     public class CustomerQuotationsController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
+        private readonly QAClothingFactory.API.Services.CustomerTrackingPinService _pinService;
 
         private static readonly string[] AllowedStatuses =
         {
@@ -29,9 +31,11 @@ namespace QAClothingFactory.API.Controllers
         };
 
         public CustomerQuotationsController(
-            ApplicationDbContext context)
+            ApplicationDbContext context,
+            QAClothingFactory.API.Services.CustomerTrackingPinService pinService)
         {
             _context = context;
+            _pinService = pinService;
         }
 
         // ========================================================
@@ -63,6 +67,8 @@ namespace QAClothingFactory.API.Controllers
                 });
             }
 
+            var trackingPin = _pinService.GeneratePin();
+
             var quotation = new CustomerQuotation
             {
                 ReferenceNumber =
@@ -70,6 +76,8 @@ namespace QAClothingFactory.API.Controllers
                     DateTime.UtcNow.ToString("yyyyMMdd") +
                     "-" +
                     Guid.NewGuid().ToString("N")[..12].ToUpperInvariant(),
+
+                TrackingPinHash = _pinService.HashPin(trackingPin),
 
                 FullName = request.FullName.Trim(),
 
@@ -109,6 +117,7 @@ namespace QAClothingFactory.API.Controllers
                 message = "Quotation request submitted successfully.",
                 quotationID = quotation.QuotationID,
                 referenceNumber = quotation.ReferenceNumber,
+                trackingPin,
                 status = quotation.Status
             });
         }
@@ -325,6 +334,15 @@ namespace QAClothingFactory.API.Controllers
                 });
             }
 
+            if (quotation.CustomerDecision != "Pending")
+            {
+                return Conflict(new
+                {
+                    success = false,
+                    message = "A customer decision has already been recorded. The quotation cannot be changed."
+                });
+            }
+
             quotation.Status = normalizedStatus;
 
             quotation.ManagerNotes =
@@ -351,6 +369,157 @@ namespace QAClothingFactory.API.Controllers
                 reviewedByEmployeeID = quotation.ReviewedByEmployeeID,
                 reviewedAtUtc = quotation.ReviewedAtUtc
             });
+        }
+
+        // ========================================================
+        // 5. CUSTOMER - TRACK USING REFERENCE + PRIVATE PIN
+        // POST /api/CustomerQuotations/track
+        // ========================================================
+        [HttpPost("track")]
+        [AllowAnonymous]
+        [EnableRateLimiting("CustomerVerification")]
+        public async Task<IActionResult> TrackQuotation(
+            [FromBody] CustomerTrackingRequest request,
+            CancellationToken cancellationToken)
+        {
+            var quotation = await FindVerifiedQuotationAsync(
+                request.ReferenceNumber, request.TrackingPin, cancellationToken);
+
+            if (quotation is null)
+                return Unauthorized(new
+                {
+                    success = false,
+                    message = "Invalid tracking details or tracking is unavailable for this quotation."
+                });
+
+            var history = await _context.CustomerOrderStatusHistories
+                .AsNoTracking()
+                .Where(h => h.QuotationID == quotation.QuotationID && h.IsVisibleToCustomer)
+                .OrderBy(h => h.CreatedAtUtc)
+                .Select(h => new
+                {
+                    h.Status,
+                    h.Description,
+                    h.CreatedAtUtc
+                })
+                .ToListAsync(cancellationToken);
+
+            return Ok(new
+            {
+                success = true,
+                quotation = new
+                {
+                    quotation.ReferenceNumber,
+                    quotation.Category,
+                    quotation.Quantity,
+                    quotation.Deadline,
+                    quotation.Status,
+                    quotation.QuotedAmount,
+                    quotation.CustomerDecision,
+                    quotation.CustomerDecisionAtUtc,
+                    quotation.CreatedAtUtc
+                },
+                history
+            });
+        }
+
+        // ========================================================
+        // 6. CUSTOMER - ACCEPT OR REJECT A QUOTED OFFER
+        // POST /api/CustomerQuotations/decision
+        // ========================================================
+        [HttpPost("decision")]
+        [AllowAnonymous]
+        [EnableRateLimiting("CustomerVerification")]
+        public async Task<IActionResult> DecideQuotation(
+            [FromBody] CustomerQuotationDecisionRequest request,
+            CancellationToken cancellationToken)
+        {
+            var decision = request.Decision.Trim();
+            if (decision != "Accepted" && decision != "Rejected")
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Decision must be Accepted or Rejected."
+                });
+
+            var quotation = await FindVerifiedQuotationAsync(
+                request.ReferenceNumber, request.TrackingPin, cancellationToken);
+
+            if (quotation is null)
+                return Unauthorized(new
+                {
+                    success = false,
+                    message = "Invalid tracking details or tracking is unavailable for this quotation."
+                });
+
+            // Atomic update prevents simultaneous requests from overwriting
+            // an earlier customer decision.
+            var now = DateTime.UtcNow;
+            var updated = await _context.CustomerQuotations
+                .Where(q => q.QuotationID == quotation.QuotationID
+                    && q.Status == "Quoted"
+                    && q.QuotedAmount != null
+                    && q.QuotedAmount > 0
+                    && q.CustomerDecision == "Pending")
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(q => q.CustomerDecision, decision)
+                    .SetProperty(q => q.CustomerDecisionAtUtc, now),
+                    cancellationToken);
+
+            if (updated != 1)
+                return Conflict(new
+                {
+                    success = false,
+                    message = "This quotation is not available for a new decision."
+                });
+
+            // Tracking reflects the decision; no production status is invented.
+            _context.CustomerOrderStatusHistories.Add(
+                new CustomerOrderStatusHistory
+                {
+                    QuotationID = quotation.QuotationID,
+                    Status = decision == "Accepted"
+                        ? "Quotation Accepted" : "Quotation Rejected",
+                    Description = decision == "Accepted"
+                        ? "Customer accepted the quoted amount."
+                        : "Customer rejected the quoted amount.",
+                    CreatedAtUtc = now,
+                    IsVisibleToCustomer = true
+                });
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            return Ok(new
+            {
+                success = true,
+                referenceNumber = quotation.ReferenceNumber,
+                customerDecision = decision,
+                customerDecisionAtUtc = now
+            });
+        }
+
+        private async Task<CustomerQuotation?> FindVerifiedQuotationAsync(
+            string referenceNumber,
+            string trackingPin,
+            CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(referenceNumber) ||
+                referenceNumber.Length > 50 ||
+                !_pinService.IsValidPin(trackingPin))
+                return null;
+
+            var quotation = await _context.CustomerQuotations
+                .AsNoTracking()
+                .FirstOrDefaultAsync(
+                    q => q.ReferenceNumber == referenceNumber.Trim(),
+                    cancellationToken);
+
+            // Legacy quotations without a PIN are intentionally inaccessible.
+            if (quotation is null ||
+                !_pinService.VerifyPin(trackingPin, quotation.TrackingPinHash))
+                return null;
+
+            return quotation;
         }
     }
 
@@ -407,4 +576,20 @@ namespace QAClothingFactory.API.Controllers
         [Range(typeof(decimal), "0", "9999999999999999.99", ParseLimitsInInvariantCulture = true)]
         public decimal? QuotedAmount { get; set; }
     }
+}
+
+
+public class CustomerTrackingRequest
+{
+    [Required, StringLength(50, MinimumLength = 5)]
+    public string ReferenceNumber { get; set; } = string.Empty;
+
+    [Required, RegularExpression("^[0-9]{12}$")]
+    public string TrackingPin { get; set; } = string.Empty;
+}
+
+public sealed class CustomerQuotationDecisionRequest : CustomerTrackingRequest
+{
+    [Required]
+    public string Decision { get; set; } = string.Empty;
 }

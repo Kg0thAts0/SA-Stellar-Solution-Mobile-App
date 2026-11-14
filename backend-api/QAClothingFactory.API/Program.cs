@@ -1,10 +1,12 @@
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using QAClothingFactory.API.Data;
 using QAClothingFactory.API.Services;
+using System.Net;
 using System.Text;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,15 +58,11 @@ if (string.IsNullOrWhiteSpace(connectionString))
 }
 
 // ============================================================
-// ENTITY FRAMEWORK + MARIADB
+// ENTITY FRAMEWORK + POSTGRESQL (SUPABASE)
 // ============================================================
 
 builder.Services.AddDbContext<ApplicationDbContext>(
-    options =>
-        options.UseMySql(
-            connectionString,
-            ServerVersion.AutoDetect(connectionString)
-        )
+    options => options.UseNpgsql(connectionString)
 );
 
 // ============================================================
@@ -74,12 +72,59 @@ builder.Services.AddDbContext<ApplicationDbContext>(
 builder.Services.AddHttpContextAccessor();
 
 // ============================================================
-// APPLICATION SERVICES
+// EXISTING APPLICATION SERVICES
 // ============================================================
 
 builder.Services.AddScoped<TokenService>();
-
 builder.Services.AddScoped<SystemActivityService>();
+builder.Services.AddScoped<GmailEmailService>();
+builder.Services.AddScoped<CustomerTrackingPinService>();
+
+// ============================================================
+// PUBLIC CUSTOMER RATE LIMITING
+// ============================================================
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode =
+        StatusCodes.Status429TooManyRequests;
+
+    options.AddPolicy("CustomerPublic", context =>
+    {
+        var clientAddress =
+            context.Connection.RemoteIpAddress?.ToString()
+            ?? "unknown";
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: clientAddress,
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 10,
+                Window = TimeSpan.FromMinutes(1),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }
+        );
+    });
+
+    options.AddPolicy("CustomerVerification", context =>
+    {
+        var clientAddress =
+            context.Connection.RemoteIpAddress?.ToString()
+            ?? "unknown";
+
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: clientAddress,
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit = 5,
+                Window = TimeSpan.FromMinutes(5),
+                QueueLimit = 0,
+                AutoReplenishment = true
+            }
+        );
+    });
+});
 
 // ============================================================
 // JWT CONFIGURATION
@@ -141,6 +186,96 @@ var app = builder.Build();
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
+
+    // ========================================================
+    // TEMPORARY SUPABASE DATABASE CONNECTION TEST
+    //
+    // Development only.
+    // Local requests only.
+    // Read-only SQL.
+    // Remove after successful verification.
+    // ========================================================
+
+    app.MapGet(
+        "/dev/database-check",
+        async (
+            HttpContext httpContext,
+            ApplicationDbContext db,
+            ILogger<Program> logger,
+            CancellationToken cancellationToken
+        ) =>
+        {
+            // Restrict the endpoint to local requests.
+            var remoteAddress =
+                httpContext.Connection.RemoteIpAddress;
+
+            if (remoteAddress is null ||
+                !IPAddress.IsLoopback(remoteAddress))
+            {
+                return Results.StatusCode(
+                    StatusCodes.Status403Forbidden
+                );
+            }
+
+            try
+            {
+                var connection =
+                    db.Database.GetDbConnection();
+
+                await db.Database.OpenConnectionAsync(
+                    cancellationToken
+                );
+
+                try
+                {
+                    await using var command =
+                        connection.CreateCommand();
+
+                    command.CommandText =
+                        "SELECT COUNT(*) FROM public.employee";
+
+                    var result =
+                        await command.ExecuteScalarAsync(
+                            cancellationToken
+                        );
+
+                    var employeeCount =
+                        Convert.ToInt64(result);
+
+                    return Results.Ok(new
+                    {
+                        status = "connected",
+                        database = "PostgreSQL",
+                        employeeTableAccessible = true,
+                        employeeCount
+                    });
+                }
+                finally
+                {
+                    await db.Database.CloseConnectionAsync();
+                }
+            }
+            catch (Exception exception)
+            {
+                logger.LogError(
+                    exception,
+                    "PostgreSQL database connection test failed."
+                );
+
+                return Results.Json(
+                    new
+                    {
+                        status = "failed",
+                        message =
+                            "Database connectivity test failed. " +
+                            "Check the API terminal for details."
+                    },
+                    statusCode:
+                        StatusCodes.Status503ServiceUnavailable
+                );
+            }
+        }
+    );
 }
 
 // ============================================================
@@ -156,7 +291,13 @@ app.UseHttpsRedirection();
 app.UseCors(CustomerWebsiteCorsPolicy);
 
 // ============================================================
-// AUTHENTICATION AND AUTHORIZATION
+// RATE LIMITING
+// ============================================================
+
+app.UseRateLimiter();
+
+// ============================================================
+// AUTHENTICATION
 // ============================================================
 
 app.UseAuthentication();
@@ -167,6 +308,10 @@ app.UseAuthorization();
 // ============================================================
 
 app.MapControllers();
+
+// ============================================================
+// HEALTH CHECK
+// ============================================================
 
 app.MapGet("/healthz", () =>
     Results.Ok(new { status = "healthy" })

@@ -8,6 +8,9 @@ namespace QAClothingFactory.API.Models
 
         public string ReferenceNumber { get; set; } = string.Empty;
 
+        // Null for legacy quotations created before PIN-based tracking.
+        public string? TrackingPinHash { get; set; }
+
         public string FullName { get; set; } = string.Empty;
 
         public string? Company { get; set; }
@@ -24,6 +27,7 @@ namespace QAClothingFactory.API.Models
 
         public string Specifications { get; set; } = string.Empty;
 
+        // Existing internal quotation review status.
         public string Status { get; set; } = "Pending";
 
         public DateTime CreatedAtUtc { get; set; } = DateTime.UtcNow;
@@ -32,8 +36,20 @@ namespace QAClothingFactory.API.Models
 
         public DateTime? ReviewedAtUtc { get; set; }
 
+        // Internal notes are not intended for customer display.
         public string? ManagerNotes { get; set; }
 
         public decimal? QuotedAmount { get; set; }
+
+        // ====================================================
+        // CUSTOMER QUOTATION DECISION
+        // ====================================================
+
+        // Pending, Accepted or Rejected.
+        // Separate from the Production Manager review status.
+        public string CustomerDecision { get; set; } = "Pending";
+
+        // UTC timestamp when the customer made their decision.
+        public DateTime? CustomerDecisionAtUtc { get; set; }
     }
 }

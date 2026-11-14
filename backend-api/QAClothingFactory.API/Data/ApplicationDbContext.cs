@@ -39,6 +39,12 @@ namespace QAClothingFactory.API.Data
 
         public DbSet<CustomerQuotation> CustomerQuotations { get; set; }
 
+        public DbSet<CustomerOrderStatusHistory> CustomerOrderStatusHistories { get; set; }
+
+        public DbSet<EmailNotificationLog> EmailNotificationLogs { get; set; }
+
+        public DbSet<CustomerVerificationToken> CustomerVerificationTokens { get; set; }
+
         // ====================================================
         // DATABASE MAPPING
         // ====================================================
@@ -116,9 +122,7 @@ namespace QAClothingFactory.API.Data
 
                 entity.Property(e => e.Role)
                     .HasColumnName("Role")
-                    .HasColumnType(
-                        "enum('Admin','ProductionManager','QualityController','InventoryClerk','Supervisor')"
-                    )
+                    .HasColumnType("character varying(40)")
                     .IsRequired(false);
 
                 // =============================================
@@ -127,9 +131,7 @@ namespace QAClothingFactory.API.Data
 
                 entity.Property(e => e.EmployeeStatus)
                     .HasColumnName("EmployeeStatus")
-                    .HasColumnType(
-                        "enum('Pending','Active','Inactive')"
-                    );
+                    .HasColumnType("character varying(40)");
 
                 entity.Property(e => e.CreatedAt)
                     .HasColumnName("CreatedAt");
@@ -190,9 +192,7 @@ namespace QAClothingFactory.API.Data
 
                 entity.Property(e => e.QualityStatus)
                     .HasColumnName("QualityStatus")
-                    .HasColumnType(
-                        "enum('Pending','Approved','Rejected')"
-                    );
+                    .HasColumnType("character varying(40)");
 
                 entity.Property(e => e.QualityInspectorID)
                     .HasColumnName("QualityInspectorID");
@@ -292,9 +292,7 @@ namespace QAClothingFactory.API.Data
 
                 entity.Property(e => e.TransactionType)
                     .HasColumnName("TransactionType")
-                    .HasColumnType(
-                        "enum('Receipt','Issue','Adjustment','Return')"
-                    )
+                    .HasColumnType("character varying(40)")
                     .IsRequired();
 
                 entity.Property(e => e.Quantity)
@@ -343,6 +341,19 @@ namespace QAClothingFactory.API.Data
                 entity.Property(e => e.ProductID)
                     .HasColumnName("ProductID");
 
+                // Optional: existing standalone batches retain NULL.
+                entity.Property(e => e.QuotationID)
+                    .HasColumnName("QuotationID")
+                    .IsRequired(false);
+
+                entity.HasIndex(e => e.QuotationID)
+                    .HasDatabaseName("IX_production_batch_QuotationID");
+
+                entity.HasOne<CustomerQuotation>()
+                    .WithMany()
+                    .HasForeignKey(e => e.QuotationID)
+                    .OnDelete(DeleteBehavior.Restrict);
+
                 entity.Property(e => e.QuantityProduced)
                     .HasColumnName("QuantityProduced")
                     .HasPrecision(10, 2);
@@ -353,16 +364,14 @@ namespace QAClothingFactory.API.Data
 
                 entity.Property(e => e.RawMaterialUsed)
                     .HasColumnName("RawMaterialUsed")
-                    .HasColumnType("longtext");
+                    .HasColumnType("text");
 
                 entity.Property(e => e.ProductionDate)
                     .HasColumnName("ProductionDate");
 
                 entity.Property(e => e.Shift)
                     .HasColumnName("Shift")
-                    .HasColumnType(
-                        "enum('Morning','Afternoon','Night')"
-                    );
+                    .HasColumnType("character varying(40)");
 
                 entity.Property(e => e.LineNumber)
                     .HasColumnName("LineNumber")
@@ -376,9 +385,7 @@ namespace QAClothingFactory.API.Data
 
                 entity.Property(e => e.QualityStatus)
                     .HasColumnName("QualityStatus")
-                    .HasColumnType(
-                        "enum('Pending','Approved','Rejected')"
-                    );
+                    .HasColumnType("character varying(40)");
 
                 entity.Property(e => e.QualityCheckedBy)
                     .HasColumnName("QualityCheckedBy");
@@ -433,7 +440,7 @@ namespace QAClothingFactory.API.Data
 
                 entity.Property(e => e.Notes)
                     .HasColumnName("Notes")
-                    .HasColumnType("longtext");
+                    .HasColumnType("text");
 
                 entity.HasIndex(e => e.BatchID);
                 entity.HasIndex(e => e.RequestedBy);
@@ -486,7 +493,7 @@ namespace QAClothingFactory.API.Data
 
                 entity.Property(e => e.Notes)
                     .HasColumnName("Notes")
-                    .HasColumnType("longtext");
+                    .HasColumnType("text");
 
                 entity.HasIndex(e => e.RequestID);
                 entity.HasIndex(e => e.MaterialID);
@@ -717,7 +724,7 @@ namespace QAClothingFactory.API.Data
 
                 entity.Property(e => e.Specifications)
                     .HasColumnName("Specifications")
-                    .HasColumnType("longtext")
+                    .HasColumnType("text")
                     .IsRequired();
 
                 entity.Property(e => e.Status)
@@ -738,12 +745,22 @@ namespace QAClothingFactory.API.Data
 
                 entity.Property(e => e.ManagerNotes)
                     .HasColumnName("ManagerNotes")
-                    .HasColumnType("longtext");
+                    .HasColumnType("text");
 
                 entity.Property(e => e.QuotedAmount)
                     .HasColumnName("QuotedAmount")
                     .HasPrecision(18, 2);
 
+                entity.Property(e => e.CustomerDecision)
+                    .HasColumnName("CustomerDecision")
+                    .HasMaxLength(20)
+                    .HasDefaultValue("Pending")
+                    .IsRequired();
+
+                entity.Property(e => e.CustomerDecisionAtUtc)
+                    .HasColumnName("CustomerDecisionAtUtc");
+
+                entity.HasIndex(e => e.CustomerDecision);
                 entity.HasIndex(e => e.Status);
                 entity.HasIndex(e => e.CreatedAtUtc);
                 entity.HasIndex(e => e.ReviewedByEmployeeID);
@@ -753,6 +770,157 @@ namespace QAClothingFactory.API.Data
                     .HasForeignKey(e => e.ReviewedByEmployeeID)
                     .OnDelete(DeleteBehavior.SetNull);
             });
+
+            // =================================================
+            // CUSTOMER ORDER STATUS HISTORY
+            // =================================================
+
+            modelBuilder.Entity<CustomerOrderStatusHistory>(entity =>
+            {
+                entity.ToTable("customer_order_status_history");
+
+                entity.HasKey(e => e.OrderStatusHistoryID);
+                entity.Property(e => e.OrderStatusHistoryID)
+                    .HasColumnName("OrderStatusHistoryID")
+                    .ValueGeneratedOnAdd();
+
+                entity.Property(e => e.QuotationID).HasColumnName("QuotationID").IsRequired();
+                entity.Property(e => e.BatchID).HasColumnName("BatchID");
+                entity.Property(e => e.Status).HasColumnName("Status").HasMaxLength(50).IsRequired();
+                entity.Property(e => e.Description).HasColumnName("Description").HasColumnType("text");
+                entity.Property(e => e.CreatedAtUtc).HasColumnName("CreatedAtUtc").IsRequired();
+                entity.Property(e => e.UpdatedByEmployeeID).HasColumnName("UpdatedByEmployeeID");
+                entity.Property(e => e.IsVisibleToCustomer)
+                    .HasColumnName("IsVisibleToCustomer")
+                    .HasDefaultValue(true)
+                    .IsRequired();
+
+                entity.HasIndex(e => new { e.QuotationID, e.CreatedAtUtc })
+                    .HasDatabaseName("IX_order_history_QuotationID_CreatedAtUtc");
+                entity.HasIndex(e => e.BatchID);
+                entity.HasIndex(e => e.UpdatedByEmployeeID);
+
+                entity.HasOne<CustomerQuotation>()
+                    .WithMany()
+                    .HasForeignKey(e => e.QuotationID)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne<ProductionBatch>()
+                    .WithMany()
+                    .HasForeignKey(e => e.BatchID)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne<Employee>()
+                    .WithMany()
+                    .HasForeignKey(e => e.UpdatedByEmployeeID)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
+
+            // =================================================
+            // EMAIL NOTIFICATION LOG
+            // =================================================
+
+            modelBuilder.Entity<EmailNotificationLog>(entity =>
+            {
+                entity.ToTable("email_notification_log");
+
+                entity.HasKey(e => e.EmailNotificationLogID);
+                entity.Property(e => e.EmailNotificationLogID)
+                    .HasColumnName("EmailNotificationLogID")
+                    .ValueGeneratedOnAdd();
+
+                entity.Property(e => e.QuotationID).HasColumnName("QuotationID").IsRequired();
+                entity.Property(e => e.BatchID).HasColumnName("BatchID");
+                entity.Property(e => e.RecipientEmail)
+                    .HasColumnName("RecipientEmail").HasMaxLength(254).IsRequired();
+                entity.Property(e => e.Subject)
+                    .HasColumnName("Subject").HasMaxLength(255).IsRequired();
+                entity.Property(e => e.Body)
+                    .HasColumnName("Body").HasColumnType("text").IsRequired();
+                entity.Property(e => e.NotificationType)
+                    .HasColumnName("NotificationType").HasMaxLength(60).IsRequired();
+                entity.Property(e => e.Status)
+                    .HasColumnName("Status").HasMaxLength(20)
+                    .HasDefaultValue("Pending").IsRequired();
+                entity.Property(e => e.DeduplicationKey)
+                    .HasColumnName("DeduplicationKey").HasMaxLength(191).IsRequired();
+                entity.Property(e => e.RetryCount)
+                    .HasColumnName("RetryCount").HasDefaultValue(0).IsRequired();
+                entity.Property(e => e.MaxRetries)
+                    .HasColumnName("MaxRetries").HasDefaultValue(5).IsRequired();
+                entity.Property(e => e.CreatedAtUtc).HasColumnName("CreatedAtUtc").IsRequired();
+                entity.Property(e => e.LastAttemptAtUtc).HasColumnName("LastAttemptAtUtc");
+                entity.Property(e => e.NextAttemptAtUtc).HasColumnName("NextAttemptAtUtc");
+                entity.Property(e => e.SentAtUtc).HasColumnName("SentAtUtc");
+                entity.Property(e => e.LastError).HasColumnName("LastError").HasColumnType("text");
+
+                entity.HasIndex(e => e.DeduplicationKey)
+                    .IsUnique()
+                    .HasDatabaseName("UX_email_notification_log_DeduplicationKey");
+                entity.HasIndex(e => new { e.Status, e.NextAttemptAtUtc });
+                entity.HasIndex(e => e.QuotationID);
+                entity.HasIndex(e => e.BatchID);
+
+                entity.HasOne<CustomerQuotation>()
+                    .WithMany()
+                    .HasForeignKey(e => e.QuotationID)
+                    .OnDelete(DeleteBehavior.Restrict);
+
+                entity.HasOne<ProductionBatch>()
+                    .WithMany()
+                    .HasForeignKey(e => e.BatchID)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // =================================================
+            // CUSTOMER VERIFICATION TOKEN
+            // =================================================
+
+            modelBuilder.Entity<CustomerVerificationToken>(entity =>
+            {
+                entity.ToTable("customer_verification_token");
+
+                entity.HasKey(e => e.CustomerVerificationTokenID);
+                entity.Property(e => e.CustomerVerificationTokenID)
+                    .HasColumnName("CustomerVerificationTokenID")
+                    .ValueGeneratedOnAdd();
+
+                entity.Property(e => e.QuotationID).HasColumnName("QuotationID").IsRequired();
+                entity.Property(e => e.TokenHash)
+                    .HasColumnName("TokenHash").HasMaxLength(64).IsRequired();
+                entity.Property(e => e.Purpose)
+                    .HasColumnName("Purpose").HasMaxLength(50).IsRequired();
+                entity.Property(e => e.CreatedAtUtc).HasColumnName("CreatedAtUtc").IsRequired();
+                entity.Property(e => e.ExpiresAtUtc).HasColumnName("ExpiresAtUtc").IsRequired();
+                entity.Property(e => e.UsedAtUtc).HasColumnName("UsedAtUtc");
+                entity.Property(e => e.RevokedAtUtc).HasColumnName("RevokedAtUtc");
+
+                entity.HasIndex(e => e.TokenHash)
+                    .IsUnique()
+                    .HasDatabaseName("UX_customer_verification_token_TokenHash");
+                entity.HasIndex(e => new { e.QuotationID, e.Purpose });
+                entity.HasIndex(e => e.ExpiresAtUtc);
+
+                entity.HasOne<CustomerQuotation>()
+                    .WithMany()
+                    .HasForeignKey(e => e.QuotationID)
+                    .OnDelete(DeleteBehavior.Restrict);
+            });
+
+            // PostgreSQL schema uses timestamp WITHOUT time zone for
+            // all DateTime/DateTime? columns. DateOnly and TimeOnly
+            // properties retain their native date/time mappings.
+            foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+            {
+                foreach (var property in entityType.GetProperties())
+                {
+                    if (property.ClrType == typeof(DateTime) ||
+                        property.ClrType == typeof(DateTime?))
+                    {
+                        property.SetColumnType("timestamp without time zone");
+                    }
+                }
+            }
         }
     }
 }

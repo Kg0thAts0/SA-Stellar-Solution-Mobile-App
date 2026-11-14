@@ -2,9 +2,6 @@
 {
     public class Employee
     {
-        // Google account unique identifier (sub)
-        public string? GoogleSubjectId { get; set; }
-
         // ================================================
         // PRIMARY KEY
         // ================================================
@@ -32,6 +29,21 @@
         // ================================================
 
         public string Password { get; set; } = string.Empty;
+
+        // ================================================
+        // GOOGLE ACCOUNT LINK
+        // ================================================
+        //
+        // Stores Google's unique user identifier (sub).
+        //
+        // Null means the employee has not linked a
+        // Google account.
+        //
+        // This must only be populated through a secure,
+        // authenticated account-linking process.
+        // ================================================
+
+        public string? GoogleSubjectId { get; set; }
 
 
         // ================================================

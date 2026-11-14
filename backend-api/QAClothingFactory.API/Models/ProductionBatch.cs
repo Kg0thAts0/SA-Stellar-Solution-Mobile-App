@@ -1,4 +1,6 @@
-﻿namespace QAClothingFactory.API.Models
+﻿using System;
+
+namespace QAClothingFactory.API.Models
 {
     public class ProductionBatch
     {
@@ -6,12 +8,14 @@
 
         public string BatchNumber { get; set; } = string.Empty;
 
+        // Optional link to a customer quotation.
+        // Null means this is a standalone production batch.
+        public int? QuotationID { get; set; }
+
         public int ProductID { get; set; }
 
-        // Planned quantity for this production order.
         public decimal TargetQuantity { get; set; }
 
-        // Quantity manufactured so far.
         public decimal QuantityProduced { get; set; }
 
         public decimal? QuantityDefective { get; set; }
@@ -28,7 +32,6 @@
 
         public int? EmployeeID { get; set; }
 
-        // Planned, In Progress, Completed or Cancelled.
         public string ProductionStatus { get; set; } = "Planned";
 
         public string? QualityStatus { get; set; }
