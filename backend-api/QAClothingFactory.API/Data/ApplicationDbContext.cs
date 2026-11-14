@@ -907,9 +907,9 @@ namespace QAClothingFactory.API.Data
                     .OnDelete(DeleteBehavior.Restrict);
             });
 
-            // PostgreSQL schema uses timestamp WITHOUT time zone for
-            // all DateTime/DateTime? columns. DateOnly and TimeOnly
-            // properties retain their native date/time mappings.
+            // Preserve the existing timestamp WITHOUT time zone mappings
+            // for other DateTime/DateTime? properties (including Deadline).
+            // DateOnly and TimeOnly retain their native date/time mappings.
             foreach (var entityType in modelBuilder.Model.GetEntityTypes())
             {
                 foreach (var property in entityType.GetProperties())
@@ -921,6 +921,21 @@ namespace QAClothingFactory.API.Data
                     }
                 }
             }
+
+            // These three customer_quotation columns were changed in Supabase
+            // to timestamp WITH time zone. Apply their mappings AFTER the
+            // general DateTime convention above so they are not overwritten.
+            modelBuilder.Entity<CustomerQuotation>(entity =>
+            {
+                entity.Property(e => e.CreatedAtUtc)
+                    .HasColumnType("timestamp with time zone");
+
+                entity.Property(e => e.ReviewedAtUtc)
+                    .HasColumnType("timestamp with time zone");
+
+                entity.Property(e => e.CustomerDecisionAtUtc)
+                    .HasColumnType("timestamp with time zone");
+            });
         }
     }
 }
