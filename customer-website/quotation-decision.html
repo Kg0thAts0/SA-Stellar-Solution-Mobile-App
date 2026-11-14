@@ -1,64 +1,605 @@
 <!DOCTYPE html>
+<html lang="en">
 
-<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="QA Clothing Factory customer quotation and order portal" name="description"/><title>Quotation Decision | QA Clothing Factory</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Playfair+Display:wght@500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/><link href="css/style.css" rel="stylesheet"/><meta content="0; url=contact.html?service=decision" http-equiv="refresh"/><script>(function() { var q = new URLSearchParams(location.search); q.set('service', 'decision'); location.replace('contact.html?' + q.toString() + '#customer-services'); })();</script></head><body>
-<header class="header">
-<div class="container">
-<div class="logo">
-<a href="index.html">
-<span class="logo-icon"><img height="60" src="images/logo/logo.jpeg" width="60"/></span>
-<div class="logo-text">
-<strong>QA</strong> Clothing Factory
-                        <small>Quality Assured Since 2014</small>
-</div>
-</a>
-</div>
-<button aria-label="Menu" class="mobile-menu-btn">
-<i class="fas fa-bars"></i>
-</button>
-<nav class="navigation">
-<ul>
-<li><a href="index.html">Home</a></li>
-<li><a href="products.html">Products</a></li>
-<li><a href="about.html">About</a></li>
-<li><a href="quality.html">Quality</a></li>
-<li><a href="contact.html">Contact</a></li>
-</ul>
-<a class="btn-primary" href="contact.html">
-<i class="fas fa-file-invoice"></i> Request Quote
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <meta name="description"
+          content="Securely review, accept, or reject your QA Clothing Factory quotation using your reference number and private tracking PIN.">
+
+    <title>
+        Quotation Decision | QA Clothing Factory
+    </title>
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap"
+        rel="stylesheet">
+
+    <link
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css"
+        rel="stylesheet">
+
+    <link href="css/style.css" rel="stylesheet">
+
+    <style>
+        .portal {
+            padding: 5rem 0;
+            min-height: 75vh;
+            background: var(--gray-bg, #f7f7f7);
+        }
+
+        .portal .container {
+            max-width: 950px;
+        }
+
+        .portal-heading {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .portal-heading h1 {
+            margin: 0.75rem 0;
+        }
+
+        .portal-heading p {
+            color: #666;
+            line-height: 1.7;
+        }
+
+        .portal-card {
+            padding: 2rem;
+            background: #fff;
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .portal-form {
+            margin-top: 1.5rem;
+        }
+
+        .portal-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.5rem;
+        }
+
+        .portal-fields label {
+            display: block;
+            margin-bottom: 0.6rem;
+            font-weight: 600;
+        }
+
+        .portal-fields input {
+            display: block;
+            width: 100%;
+            padding: 0.85rem;
+            border: 1px solid #ccc;
+            border-radius: 7px;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+
+        .portal-fields input:focus {
+            outline: 2px solid var(--accent, #e87a2a);
+            outline-offset: 1px;
+        }
+
+        .portal-hint {
+            margin-top: 0.5rem;
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.6;
+        }
+
+        .portal-message {
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            border-radius: 8px;
+            background: #eef5ff;
+            color: #153e75;
+            line-height: 1.6;
+        }
+
+        .portal-message.error {
+            background: #ffebee;
+            color: #b71c1c;
+        }
+
+        .portal-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .portal-actions button,
+        .portal-actions a {
+            font-family: inherit;
+        }
+
+        .portal-actions button {
+            cursor: pointer;
+        }
+
+        .portal-actions button:disabled {
+            cursor: not-allowed;
+            opacity: 0.5;
+        }
+
+        .portal-link {
+            color: var(--accent, #c65e12);
+            text-decoration: underline;
+        }
+
+        .portal-outline {
+            display: inline-block;
+            padding: 0.85rem 1.5rem;
+            border: 1px solid #555;
+            border-radius: 7px;
+            background: #fff;
+            color: #333;
+            font-weight: 600;
+            text-decoration: none;
+        }
+
+        #decisionVerified {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid #e5e7eb;
+        }
+
+        #decisionVerified h2 {
+            margin-bottom: 1rem;
+        }
+
+        .portal-details {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1.25rem;
+            margin: 1.5rem 0;
+        }
+
+        .portal-details dt {
+            margin-bottom: 0.35rem;
+            font-weight: 600;
+            color: #444;
+        }
+
+        .portal-details dd {
+            margin: 0;
+            color: #222;
+            overflow-wrap: anywhere;
+        }
+
+        .decision-warning {
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #fff8e1;
+            border-left: 4px solid #f9a825;
+            border-radius: 6px;
+            color: #5d4037;
+            line-height: 1.7;
+        }
+
+        @media (max-width: 768px) {
+            .portal {
+                padding: 3rem 0;
+            }
+
+            .portal-card {
+                padding: 1.5rem;
+            }
+
+            .portal-fields,
+            .portal-details {
+                grid-template-columns: 1fr;
+            }
+
+            .portal-actions {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .portal-actions button,
+            .portal-actions a {
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+
+    <header class="header">
+        <div class="container">
+
+            <div class="logo">
+                <a href="index.html">
+
+                    <span class="logo-icon">
+                        <img
+                            src="images/logo/logo.jpeg"
+                            width="60"
+                            height="60"
+                            alt="QA Clothing Factory logo">
+                    </span>
+
+                    <div class="logo-text">
+                        <strong>QA</strong> Clothing Factory
+                        <small>
+                            Quality Assured Since 2014
+                        </small>
+                    </div>
+
                 </a>
-</nav>
-</div>
-</header>
-<main class="portal"><div class="container"><div class="portal-heading"><span class="section-tag">Customer portal</span><h1>Review your quotation</h1><p>Confirm your identity before accepting or declining a quotation.</p></div><section class="portal-card"><div aria-live="polite" class="portal-message" id="decisionMessage" role="status">Secure customer decision endpoints are not connected yet. This page is ready for the upcoming API integration; no decisions can be recorded until verification is available.</div><form class="portal-form" id="decisionForm"><div class="portal-fields"><div><label for="decisionReference">Quotation reference</label><input id="decisionReference" maxlength="40" name="reference" required=""/></div><div><label for="decisionEmail">Email used on request</label><input id="decisionEmail" name="email" required="" type="email"/></div></div><div class="portal-actions"><button class="btn-primary" type="submit">Request secure verification</button><a class="portal-link" href="track-quotation.html">Back to quotation tracking</a></div></form><div class="portal-actions"><button class="portal-outline" id="demoDecision" type="button">Preview sample quotation offer</button></div><div hidden="" id="decisionVerified"><h2>Quotation offer</h2><dl class="portal-details" id="decisionDetails"></dl><div class="portal-actions"><button class="btn-primary" disabled="" id="acceptQuote" type="button">Accept quotation</button><button class="portal-outline" disabled="" id="declineQuote" type="button">Decline quotation</button></div></div></section></div></main>
-<footer class="footer">
-<div class="container">
-<div class="footer-grid">
-<div class="footer-about">
-<div class="footer-logo"><strong>QA</strong> Clothing Factory</div>
-<p>Quality Assured manufacturers of premium garments for wholesalers, retailers, and trade-only companies.</p>
-</div>
-<div class="footer-links">
-<h4>Quick Links</h4>
-<ul>
-<li><a href="index.html">Home</a></li>
-<li><a href="products.html">Products</a></li>
-<li><a href="about.html">About</a></li>
-<li><a href="quality.html">Quality</a></li>
-<li><a href="contact.html">Contact</a></li>
-</ul>
-</div>
-<div class="footer-contact">
-<h4>Contact Us</h4>
-<ul class="contact-info">
-<li><i class="fas fa-map-marker-alt"></i> 28 Boundary Street, Maraisburg, Roodepoort, 1709</li>
-<li><i class="fas fa-phone-alt"></i> <a href="tel:0781170652">078 117 0652</a></li>
-<li><i class="fas fa-envelope"></i> <a href="mailto:sales@clothingfactory.co">sales@clothingfactory.co</a></li>
-</ul>
-</div>
-</div>
-<div class="footer-bottom">
-<p>© 2026 QA Clothing Factory. Quality Assured Since 2014.</p>
-</div>
-</div>
-</footer>
-<script src="js/main.js"></script><script src="js/customer-portal.js"></script></body></html>
+            </div>
+
+            <button
+                aria-label="Menu"
+                class="mobile-menu-btn"
+                type="button">
+                <i class="fas fa-bars"></i>
+            </button>
+
+            <nav class="navigation">
+                <ul>
+                    <li>
+                        <a href="index.html">Home</a>
+                    </li>
+
+                    <li>
+                        <a href="products.html">Products</a>
+                    </li>
+
+                    <li>
+                        <a href="about.html">About</a>
+                    </li>
+
+                    <li>
+                        <a href="quality.html">Quality</a>
+                    </li>
+
+                    <li>
+                        <a href="contact.html">Contact</a>
+                    </li>
+                </ul>
+
+                <a
+                    class="btn-primary"
+                    href="contact.html">
+                    <i class="fas fa-file-invoice"></i>
+                    Request Quote
+                </a>
+            </nav>
+
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+
+    <main class="portal">
+        <div class="container">
+
+            <div class="portal-heading">
+
+                <span class="section-tag">
+                    Customer Portal
+                </span>
+
+                <h1>
+                    Review Your Quotation
+                </h1>
+
+                <p>
+                    Verify your quotation reference and
+                    private tracking PIN to view your offer
+                    and accept or reject it.
+                </p>
+
+            </div>
+
+            <section class="portal-card">
+
+                <h2>Secure Quotation Verification</h2>
+
+                <p class="portal-hint">
+                    Your tracking PIN was provided when
+                    you submitted your quotation request.
+                    Do not share it with anyone.
+                </p>
+
+                <!-- STATUS MESSAGE -->
+
+                <div
+                    id="decisionMessage"
+                    class="portal-message"
+                    role="status"
+                    aria-live="polite"
+                    hidden>
+                </div>
+
+                <!-- VERIFICATION FORM -->
+
+                <form
+                    id="decisionForm"
+                    class="portal-form"
+                    novalidate>
+
+                    <div class="portal-fields">
+
+                        <div>
+                            <label for="decisionReference">
+                                Quotation Reference *
+                            </label>
+
+                            <input
+                                id="decisionReference"
+                                name="reference"
+                                type="text"
+                                maxlength="40"
+                                placeholder="QA-YYYYMMDD-XXXXXXXXXXXX"
+                                autocomplete="off"
+                                required>
+                        </div>
+
+                        <div>
+                            <label for="decisionTrackingPin">
+                                12-Digit Tracking PIN *
+                            </label>
+
+                            <input
+                                id="decisionTrackingPin"
+                                name="trackingPin"
+                                type="password"
+                                inputmode="numeric"
+                                pattern="[0-9]{12}"
+                                minlength="12"
+                                maxlength="12"
+                                autocomplete="off"
+                                placeholder="Enter your private PIN"
+                                required>
+
+                            <p class="portal-hint">
+                                The PIN is used only to
+                                verify your quotation.
+                            </p>
+                        </div>
+
+                    </div>
+
+                    <div class="portal-actions">
+
+                        <button
+                            class="btn-primary"
+                            type="submit">
+                            <i
+                                class="fas fa-shield-alt"
+                                aria-hidden="true"></i>
+                            Verify Quotation
+                        </button>
+
+                        <a
+                            class="portal-link"
+                            href="track-quotation.html">
+                            Back to Quotation Tracking
+                        </a>
+
+                    </div>
+
+                </form>
+
+                <!-- VERIFIED QUOTATION OFFER -->
+
+                <div
+                    id="decisionVerified"
+                    hidden>
+
+                    <h2>Your Quotation Offer</h2>
+
+                    <p>
+                        Review the quotation details and
+                        quoted amount before submitting
+                        your decision.
+                    </p>
+
+                    <dl
+                        id="decisionDetails"
+                        class="portal-details">
+                    </dl>
+
+                    <div class="decision-warning">
+
+                        <strong>Important:</strong>
+
+                        Accepting or rejecting a quotation
+                        records your decision with
+                        QA Clothing Factory.
+
+                        Please review the quoted amount
+                        carefully before continuing.
+
+                        A confirmation will be requested
+                        before your decision is submitted.
+
+                    </div>
+
+                    <div class="portal-actions">
+
+                        <button
+                            class="btn-primary"
+                            id="acceptQuote"
+                            type="button"
+                            disabled>
+                            <i
+                                class="fas fa-check-circle"
+                                aria-hidden="true"></i>
+                            Accept Quotation
+                        </button>
+
+                        <button
+                            class="portal-outline"
+                            id="declineQuote"
+                            type="button"
+                            disabled>
+                            <i
+                                class="fas fa-times-circle"
+                                aria-hidden="true"></i>
+                            Reject Quotation
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </section>
+
+            <!-- HELP SECTION -->
+
+            <section
+                class="portal-card"
+                style="margin-top: 1.5rem;">
+
+                <h2>Need Assistance?</h2>
+
+                <p>
+                    If you cannot locate your reference
+                    or tracking PIN, please contact
+                    QA Clothing Factory.
+                </p>
+
+                <p>
+                    Only quotations that have been
+                    reviewed and assigned a valid
+                    quoted amount can be accepted
+                    or rejected.
+                </p>
+
+                <div class="portal-actions">
+
+                    <a
+                        class="portal-outline"
+                        href="contact.html">
+                        Contact Customer Support
+                    </a>
+
+                    <a
+                        class="portal-outline"
+                        href="track-quotation.html">
+                        Track My Quotation
+                    </a>
+
+                </div>
+
+            </section>
+
+        </div>
+    </main>
+
+    <!-- FOOTER -->
+
+    <footer class="footer">
+        <div class="container">
+
+            <div class="footer-grid">
+
+                <div class="footer-about">
+
+                    <div class="footer-logo">
+                        <strong>QA</strong> Clothing Factory
+                    </div>
+
+                    <p>
+                        Quality Assured manufacturers of
+                        premium garments for wholesalers,
+                        retailers, and trade-only companies.
+                    </p>
+
+                </div>
+
+                <div class="footer-links">
+
+                    <h4>Quick Links</h4>
+
+                    <ul>
+                        <li>
+                            <a href="index.html">Home</a>
+                        </li>
+
+                        <li>
+                            <a href="products.html">Products</a>
+                        </li>
+
+                        <li>
+                            <a href="about.html">About</a>
+                        </li>
+
+                        <li>
+                            <a href="quality.html">Quality</a>
+                        </li>
+
+                        <li>
+                            <a href="contact.html">Contact</a>
+                        </li>
+                    </ul>
+
+                </div>
+
+                <div class="footer-contact">
+
+                    <h4>Contact Us</h4>
+
+                    <ul class="contact-info">
+
+                        <li>
+                            <i class="fas fa-map-marker-alt"></i>
+                            28 Boundary Street, Maraisburg,
+                            Roodepoort, 1709
+                        </li>
+
+                        <li>
+                            <i class="fas fa-phone-alt"></i>
+
+                            <a href="tel:0781170652">
+                                078 117 0652
+                            </a>
+                        </li>
+
+                        <li>
+                            <i class="fas fa-envelope"></i>
+
+                            <a href="mailto:sales@clothingfactory.co">
+                                sales@clothingfactory.co
+                            </a>
+                        </li>
+
+                    </ul>
+
+                </div>
+
+            </div>
+
+            <div class="footer-bottom">
+                <p>
+                    &copy; 2026 QA Clothing Factory.
+                    Quality Assured Since 2014.
+                </p>
+            </div>
+
+        </div>
+    </footer>
+
+    <!-- JAVASCRIPT -->
+
+    <script src="js/main.js"></script>
+
+    <script src="js/customer-portal.js"></script>
+
+</body>
+</html>

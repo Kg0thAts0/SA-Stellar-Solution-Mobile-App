@@ -292,9 +292,37 @@
 <button aria-controls="customer-panel-order" aria-expanded="false" class="customer-service-trigger" data-customer-panel="order" type="button"><i aria-hidden="true" class="fas fa-box"></i><span>Track Order</span></button>
 <button aria-controls="customer-panel-decision" aria-expanded="false" class="customer-service-trigger" data-customer-panel="decision" type="button"><i aria-hidden="true" class="fas fa-check-circle"></i><span>Accept / Reject Quotation</span></button>
 </div>
-<div class="customer-service-panel" hidden="" id="customer-panel-quote"><h3>Track your quotation</h3><p>Enter the quotation reference and the email address used for the request.</p><form class="customer-service-form" data-customer-form="quote" novalidate=""><label for="customer-quote-reference">Quotation reference</label><input id="customer-quote-reference" maxlength="40" name="reference" placeholder="QA-YYYYMMDD-XXXXXXXXXXXX" required=""/><label for="customer-quote-email">Email address</label><input autocomplete="email" id="customer-quote-email" name="email" required="" type="email"/><button class="btn-primary" type="submit">Find my quotation</button><p aria-live="polite" class="customer-service-message" hidden="" role="status"></p></form></div>
-<div class="customer-service-panel" hidden="" id="customer-panel-order"><h3>Track your order</h3><p>Check your order progress using the quotation reference provided when you submitted your request.</p><form class="customer-service-form" data-customer-form="order" novalidate=""><label for="customer-order-reference">Quotation reference</label><input id="customer-order-reference" maxlength="40" name="reference" placeholder="QA-YYYYMMDD-XXXXXXXXXXXX" required=""/><label for="customer-order-email">Email address</label><input autocomplete="email" id="customer-order-email" name="email" required="" type="email"/><button class="btn-primary" type="submit">Check order status</button><p aria-live="polite" class="customer-service-message" hidden="" role="status"></p></form></div>
-<div class="customer-service-panel" hidden="" id="customer-panel-decision"><h3>Review your quotation</h3><p>Request secure verification before accepting or rejecting an offer. Your decision must be verified by the server.</p><form class="customer-service-form" data-customer-form="decision" novalidate=""><label for="customer-decision-reference">Quotation reference</label><input id="customer-decision-reference" maxlength="40" name="reference" placeholder="QA-YYYYMMDD-XXXXXXXXXXXX" required=""/><label for="customer-decision-email">Email address</label><input autocomplete="email" id="customer-decision-email" name="email" required="" type="email"/><button class="btn-primary" type="submit">Request secure verification</button><p aria-live="polite" class="customer-service-message" hidden="" role="status"></p></form><p class="customer-service-note">Accept and reject controls will become available only after secure identity verification is connected to the API.</p></div>
+<div class="customer-service-panel" hidden id="customer-panel-quote">
+<h3>Track your quotation</h3>
+<p>Enter your quotation reference to continue to secure tracking. You will enter your private 12-digit PIN on the next page.</p>
+<form class="customer-service-form" data-customer-form="quote" novalidate>
+<label for="customer-quote-reference">Quotation reference</label>
+<input id="customer-quote-reference" maxlength="40" name="reference" placeholder="QA-YYYYMMDD-XXXXXXXXXXXX" autocomplete="off" required>
+<button class="btn-primary" type="submit">Continue to quotation tracking</button>
+<p aria-live="polite" class="customer-service-message" hidden role="status"></p>
+</form>
+</div>
+<div class="customer-service-panel" hidden id="customer-panel-order">
+<h3>Track your order</h3>
+<p>Enter your quotation reference to continue. Your private 12-digit PIN will be required to verify your information.</p>
+<form class="customer-service-form" data-customer-form="order" novalidate>
+<label for="customer-order-reference">Quotation reference</label>
+<input id="customer-order-reference" maxlength="40" name="reference" placeholder="QA-YYYYMMDD-XXXXXXXXXXXX" autocomplete="off" required>
+<button class="btn-primary" type="submit">Continue to order tracking</button>
+<p aria-live="polite" class="customer-service-message" hidden role="status"></p>
+</form>
+</div>
+<div class="customer-service-panel" hidden id="customer-panel-decision">
+<h3>Review your quotation</h3>
+<p>Enter your quotation reference to review a quoted offer. You will verify your private 12-digit PIN before you can accept or reject it.</p>
+<form class="customer-service-form" data-customer-form="decision" novalidate>
+<label for="customer-decision-reference">Quotation reference</label>
+<input id="customer-decision-reference" maxlength="40" name="reference" placeholder="QA-YYYYMMDD-XXXXXXXXXXXX" autocomplete="off" required>
+<button class="btn-primary" type="submit">Continue to quotation review</button>
+<p aria-live="polite" class="customer-service-message" hidden role="status"></p>
+</form>
+<p class="customer-service-note">Only quotations marked as Quoted with a valid amount and no previous customer decision can be accepted or rejected.</p>
+</div>
 </div></section><footer class="footer">
 <div class="container">
 <div class="footer-grid">
