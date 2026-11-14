@@ -1,13 +1,14 @@
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thank You - QA Clothing Factory</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&family=Playfair+Display:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="css/style.css">
-    <style>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Thank You - QA Clothing Factory</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,100..900&amp;family=Playfair+Display:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/>
+<link href="css/style.css" rel="stylesheet"/>
+<style>
         .thankyou-container {
             min-height: 70vh;
             display: flex;
@@ -42,16 +43,28 @@
     </style>
 </head>
 <body>
-
-    <div class="thankyou-container">
-        <div class="thankyou-card">
-            <i class="fas fa-check-circle"></i>
-            <h1>Thank You!</h1>
-            <p>Your message has been sent successfully.</p>
-            <p>A representative from QA Clothing Factory will get back to you within 24 business hours.</p>
-            <a href="index.html" class="btn-primary btn-back">Return to Homepage</a>
-        </div>
-    </div>
-
+<div class="thankyou-container">
+<div class="thankyou-card">
+<i class="fas fa-check-circle"></i>
+<h1>Thank You!</h1>
+<p id="confirmation-message">Your message has been sent successfully.</p>
+<p id="quote-reference" style="display:none;overflow-wrap:anywhere"></p>
+<p>A representative from QA Clothing Factory will get back to you within 24 business hours.</p>
+<a class="btn-primary btn-back" href="track-quotation.html" id="track-quote-link">Track Your Quotation</a> <a class="btn-back" href="index.html">Return to Homepage</a>
+</div>
+</div>
+<script>
+      (function () {
+        const params = new URLSearchParams(window.location.search);
+        const reference = params.get('reference');
+        if (params.get('type') !== 'quote' || !/^QA-[0-9]{8}-[A-Z0-9]{12}$/.test(reference || '')) return;
+        document.getElementById('confirmation-message').textContent =
+          'Your quotation request has been submitted successfully.';
+        const display = document.getElementById('quote-reference');
+        display.style.display = 'block';
+        display.textContent = 'Your quotation reference: ' + reference;
+        document.getElementById('track-quote-link').href = 'track-quotation.html?reference=' + encodeURIComponent(reference);
+      })();
+    </script>
 </body>
 </html>

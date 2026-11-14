@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+
+<html lang="en"><head><meta charset="utf-8"/><meta content="width=device-width, initial-scale=1.0" name="viewport"/><meta content="QA Clothing Factory customer quotation and order portal" name="description"/><title>Quotation Decision | QA Clothing Factory</title><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Playfair+Display:wght@500;600;700&amp;display=swap" rel="stylesheet"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet"/><link href="css/style.css" rel="stylesheet"/><meta content="0; url=contact.html?service=decision" http-equiv="refresh"/><script>(function() { var q = new URLSearchParams(location.search); q.set('service', 'decision'); location.replace('contact.html?' + q.toString() + '#customer-services'); })();</script></head><body>
+<header class="header">
+<div class="container">
+<div class="logo">
+<a href="index.html">
+<span class="logo-icon"><img height="60" src="images/logo/logo.jpeg" width="60"/></span>
+<div class="logo-text">
+<strong>QA</strong> Clothing Factory
+                        <small>Quality Assured Since 2014</small>
+</div>
+</a>
+</div>
+<button aria-label="Menu" class="mobile-menu-btn">
+<i class="fas fa-bars"></i>
+</button>
+<nav class="navigation">
+<ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="products.html">Products</a></li>
+<li><a href="about.html">About</a></li>
+<li><a href="quality.html">Quality</a></li>
+<li><a href="contact.html">Contact</a></li>
+</ul>
+<a class="btn-primary" href="contact.html">
+<i class="fas fa-file-invoice"></i> Request Quote
+                </a>
+</nav>
+</div>
+</header>
+<main class="portal"><div class="container"><div class="portal-heading"><span class="section-tag">Customer portal</span><h1>Review your quotation</h1><p>Confirm your identity before accepting or declining a quotation.</p></div><section class="portal-card"><div aria-live="polite" class="portal-message" id="decisionMessage" role="status">Secure customer decision endpoints are not connected yet. This page is ready for the upcoming API integration; no decisions can be recorded until verification is available.</div><form class="portal-form" id="decisionForm"><div class="portal-fields"><div><label for="decisionReference">Quotation reference</label><input id="decisionReference" maxlength="40" name="reference" required=""/></div><div><label for="decisionEmail">Email used on request</label><input id="decisionEmail" name="email" required="" type="email"/></div></div><div class="portal-actions"><button class="btn-primary" type="submit">Request secure verification</button><a class="portal-link" href="track-quotation.html">Back to quotation tracking</a></div></form><div class="portal-actions"><button class="portal-outline" id="demoDecision" type="button">Preview sample quotation offer</button></div><div hidden="" id="decisionVerified"><h2>Quotation offer</h2><dl class="portal-details" id="decisionDetails"></dl><div class="portal-actions"><button class="btn-primary" disabled="" id="acceptQuote" type="button">Accept quotation</button><button class="portal-outline" disabled="" id="declineQuote" type="button">Decline quotation</button></div></div></section></div></main>
+<footer class="footer">
+<div class="container">
+<div class="footer-grid">
+<div class="footer-about">
+<div class="footer-logo"><strong>QA</strong> Clothing Factory</div>
+<p>Quality Assured manufacturers of premium garments for wholesalers, retailers, and trade-only companies.</p>
+</div>
+<div class="footer-links">
+<h4>Quick Links</h4>
+<ul>
+<li><a href="index.html">Home</a></li>
+<li><a href="products.html">Products</a></li>
+<li><a href="about.html">About</a></li>
+<li><a href="quality.html">Quality</a></li>
+<li><a href="contact.html">Contact</a></li>
+</ul>
+</div>
+<div class="footer-contact">
+<h4>Contact Us</h4>
+<ul class="contact-info">
+<li><i class="fas fa-map-marker-alt"></i> 28 Boundary Street, Maraisburg, Roodepoort, 1709</li>
+<li><i class="fas fa-phone-alt"></i> <a href="tel:0781170652">078 117 0652</a></li>
+<li><i class="fas fa-envelope"></i> <a href="mailto:sales@clothingfactory.co">sales@clothingfactory.co</a></li>
+</ul>
+</div>
+</div>
+<div class="footer-bottom">
+<p>© 2026 QA Clothing Factory. Quality Assured Since 2014.</p>
+</div>
+</div>
+</footer>
+<script src="js/main.js"></script><script src="js/customer-portal.js"></script></body></html>
