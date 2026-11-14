@@ -1165,3 +1165,132 @@ a {
         margin: 0 3px;
     }
 }
+/* Customer portal */
+.portal{background:var(--gray-bg);padding:3.5rem 0 5rem;min-height:70vh}
+.portal-heading{max-width:760px;margin:0 auto 2rem;text-align:center}
+.portal-heading h1{font-size:clamp(2rem,4vw,3.2rem);margin:.6rem 0}
+.portal-heading p{color:var(--gray);font-size:1.05rem}
+.portal-card{background:#fff;border:1px solid #e3e9f0;border-radius:16px;box-shadow:var(--shadow-sm);padding:clamp(1.2rem,3vw,2.3rem);max-width:1000px;margin:0 auto 1.5rem}
+.portal-card h2{font-size:1.6rem;margin-bottom:1rem}
+.portal-card h3{font-size:1.13rem;margin:.6rem 0}
+.portal-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin-bottom:1.2rem}
+.portal-form label{display:block;font-weight:600;margin-bottom:.4rem}
+.portal-form input{width:100%;padding:.85rem 1rem;border:1px solid #bdc9d4;border-radius:8px;font:inherit}
+.portal-form input:focus{outline:2px solid var(--primary);outline-offset:2px}
+.portal-hint{font-size:.9rem;color:var(--gray);margin-top:1rem}
+.portal-message{padding:1rem;border-radius:8px;background:#eaf2fb;color:#123e6a;margin-top:1rem}
+.portal-message.error{background:#fff1f0;color:#8e1f18}
+.portal-card-head{display:flex;justify-content:space-between;gap:1rem;align-items:center;flex-wrap:wrap}
+.portal-pill{border-radius:999px;padding:.35rem .8rem;background:#e9f0f7;color:var(--primary-dark);font-weight:700;font-size:.85rem}
+.portal-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem;margin:1rem 0 1.5rem}
+.portal-details div{border-bottom:1px solid #e8edf2;padding:.5rem 0}
+.portal-details dt{font-size:.85rem;color:var(--gray)}
+.portal-details dd{font-weight:600;overflow-wrap:anywhere}
+.portal-actions{display:flex;gap:1rem;align-items:center;flex-wrap:wrap;margin-top:1.2rem}
+.portal-outline{border:1px solid var(--primary);border-radius:8px;background:#fff;color:var(--primary);padding:.85rem 1.2rem;font:inherit;cursor:pointer}
+.portal-outline:disabled,.portal-actions button:disabled{opacity:.5;cursor:not-allowed}
+.portal-link{color:var(--primary);text-decoration:underline}
+.portal-steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.2rem}
+.portal-steps>div{border-left:3px solid var(--accent);padding-left:1rem}
+.portal-steps strong{color:var(--accent);font-size:1.1rem}
+.portal-steps p{color:var(--gray)}
+.portal-timeline{list-style:none;border-left:3px solid var(--primary);margin:1rem 0 1.5rem 1rem;padding-left:1.5rem}
+.portal-timeline li{position:relative;padding:0 0 1.5rem}
+.portal-timeline li:before{content:'';position:absolute;left:-2rem;top:.35rem;width:.8rem;height:.8rem;border-radius:50%;background:var(--accent)}
+.portal-timeline small{display:block;color:var(--gray)}
+.portal-followup-link{display:block;margin-top:.6rem;font-weight:700;text-decoration:underline}
+[hidden]{display:none!important}
+@media(max-width:700px){.portal-fields,.portal-details,.portal-steps{grid-template-columns:1fr}.portal{padding:2rem 0 3rem}}
+
+/* Customer service panels on Contact page */
+.customer-services { padding: 4rem 0; background: var(--gray-bg, #f6f7f9); }
+.customer-service-actions { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; margin:2rem 0; }
+.customer-service-trigger { display:flex; align-items:center; justify-content:center; gap:.7rem; min-height:88px; padding:1.2rem; border:1px solid #d6dce2; border-radius:12px; background:#fff; color:#263440; font:inherit; font-weight:700; cursor:pointer; text-align:center; transition:border-color .2s, box-shadow .2s; }
+.customer-service-trigger:hover, .customer-service-trigger:focus-visible, .customer-service-trigger.is-active { border-color:#b88b4b; box-shadow:0 3px 14px #00000012; }
+.customer-service-panel[hidden] { display:none !important; }
+.customer-service-panel { background:#fff; border:1px solid #d6dce2; border-radius:12px; padding:clamp(1.25rem,3vw,2.5rem); max-width:900px; margin:0 auto; }
+.customer-service-panel h3 { margin-bottom:.6rem; }
+.customer-service-form { display:grid; gap:.7rem; margin-top:1.4rem; }
+.customer-service-form label { font-weight:600; }
+.customer-service-form input { width:100%; min-height:46px; border:1px solid #c8cdd2; border-radius:7px; padding:.75rem; font:inherit; }
+.customer-service-form button { margin-top:.5rem; justify-self:start; }
+.customer-service-message { padding:1rem; background:#f6f7f9; border-radius:8px; }
+.customer-service-note { margin-top:1rem; font-size:.92rem; }
+@media(max-width:700px) { .customer-service-actions { grid-template-columns:1fr; } .customer-service-trigger { min-height:65px; } }
+
+/* ============================================================
+   CONTACT PAGE — COMPACT PROFESSIONAL FORMS
+   Applies to the existing Contact and Quotation forms without
+   changing their IDs, fields, or JavaScript functionality.
+   ============================================================ */
+.contact-section { padding: 3rem 0; }
+.contact-grid { gap: 1.5rem; align-items: start; }
+.contact-section .contact-form {
+    width: 100%; max-width: 760px;
+    padding: clamp(1.1rem, 2.5vw, 1.75rem);
+    border: 1px solid #e1e7ee; border-radius: 14px;
+    background: #fff; box-shadow: 0 6px 24px rgba(11,43,74,.07);
+}
+.contact-section .contact-form h2,
+.contact-section .contact-form h3 { font-size: clamp(1.3rem, 2vw, 1.65rem); margin-bottom: .65rem; }
+.contact-section .contact-form form { display: grid; gap: 1rem; }
+.contact-section .contact-form .form-row {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem; margin: 0;
+}
+.contact-section .contact-form .form-group { min-width: 0; margin: 0; }
+.contact-section .contact-form label {
+    display: block; margin-bottom: .35rem;
+    font-size: .88rem; font-weight: 600; color: var(--primary-dark);
+}
+.contact-section .contact-form input,
+.contact-section .contact-form select,
+.contact-section .contact-form textarea {
+    display: block; width: 100%; max-width: 100%;
+    min-height: 43px; padding: .65rem .8rem;
+    border: 1px solid #cbd5df; border-radius: 8px;
+    background: #fff; color: var(--dark); font: inherit;
+    font-size: .94rem; line-height: 1.45;
+}
+.contact-section .contact-form textarea { min-height: 105px; resize: vertical; }
+.contact-section .contact-form :is(input,select,textarea):focus-visible {
+    outline: 2px solid var(--primary); outline-offset: 1px;
+    border-color: var(--primary);
+}
+.contact-section .contact-form button[type="submit"] {
+    min-height: 44px; width: auto; justify-self: start;
+    padding: .7rem 1.4rem; font-size: .95rem;
+}
+/* Compact expandable tracking and decision panels */
+.customer-services { padding: 2.5rem 0 3.5rem; }
+.customer-service-actions { max-width: 900px; margin: 1.4rem auto; gap: .85rem; }
+.customer-service-trigger {
+    min-height: 68px; padding: .85rem 1rem;
+    border-radius: 10px; color: var(--primary-dark);
+}
+.customer-service-trigger:is(:hover,:focus-visible,.is-active) {
+    border-color: var(--accent); box-shadow: 0 3px 14px rgba(11,43,74,.09);
+}
+.customer-service-panel {
+    max-width: 760px; padding: clamp(1rem, 2.5vw, 1.75rem);
+    border-color: #e1e7ee; border-radius: 14px;
+}
+.customer-service-panel[hidden] { display: none !important; }
+.customer-service-form { gap: .65rem; margin-top: 1rem; }
+.customer-service-form input,
+.customer-service-form select,
+.customer-service-form textarea {
+    width: 100%; min-height: 43px; padding: .65rem .8rem;
+    border: 1px solid #cbd5df; border-radius: 8px; font: inherit;
+}
+.customer-service-form button { min-height: 44px; }
+@media (max-width: 700px) {
+    .contact-section { padding: 2rem 0; }
+    .contact-section .contact-form { padding: 1rem; }
+    .contact-section .contact-form .form-row { grid-template-columns: 1fr; }
+    .contact-section .contact-form button[type="submit"] { width: 100%; justify-self: stretch; }
+    .customer-service-actions { grid-template-columns: 1fr; }
+    .customer-service-trigger { min-height: 58px; }
+    .customer-service-panel { padding: 1rem; }
+    .customer-service-form button { width: 100%; }
+}
