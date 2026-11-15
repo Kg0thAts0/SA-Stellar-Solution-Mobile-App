@@ -191,7 +191,9 @@ namespace QAClothingFactory.API.Controllers
                     q.ReviewedByEmployeeID,
                     q.ReviewedAtUtc,
                     q.ManagerNotes,
-                    q.QuotedAmount
+                    q.QuotedAmount,
+                    q.CustomerDecision,
+                    q.CustomerDecisionAtUtc
                 })
                 .ToListAsync();
 
@@ -334,26 +336,103 @@ namespace QAClothingFactory.API.Controllers
                 });
             }
 
-            if (quotation.CustomerDecision != "Pending")
+            // Customer acceptance/rejection is recorded by the public
+            // decision endpoint. A manager cannot overwrite that decision.
+            var customerDecision = quotation.CustomerDecision ?? "Pending";
+
+            if (quotation.Status == "Approved" ||
+                quotation.Status == "Cancelled" ||
+                quotation.Status == "Rejected")
             {
                 return Conflict(new
                 {
                     success = false,
-                    message = "A customer decision has already been recorded. The quotation cannot be changed."
+                    message = "This quotation is already in a final status and cannot be reviewed again."
                 });
             }
 
-            quotation.Status = normalizedStatus;
+            if (customerDecision == "Rejected")
+            {
+                return Conflict(new
+                {
+                    success = false,
+                    message = "The customer rejected this quotation. It cannot be approved or changed."
+                });
+            }
 
-            quotation.ManagerNotes =
-                string.IsNullOrWhiteSpace(request.ManagerNotes)
-                    ? null
-                    : request.ManagerNotes.Trim();
+            if (customerDecision == "Accepted")
+            {
+                if (quotation.Status != "Quoted" || normalizedStatus != "Approved")
+                {
+                    return Conflict(new
+                    {
+                        success = false,
+                        message = "An accepted quotation can only move from Quoted to Approved."
+                    });
+                }
 
-            quotation.QuotedAmount = request.QuotedAmount;
+                // Approval must not silently overwrite the price the customer accepted.
+                if (!quotation.QuotedAmount.HasValue || quotation.QuotedAmount.Value <= 0 ||
+                    (request.QuotedAmount.HasValue &&
+                     request.QuotedAmount.Value != quotation.QuotedAmount.Value))
+                {
+                    return Conflict(new
+                    {
+                        success = false,
+                        message = "The approved amount must match the price accepted by the customer."
+                    });
+                }
+
+                quotation.Status = "Approved";
+                // Preserve both the accepted price and the existing manager notes.
+            }
+            else if (customerDecision == "Pending")
+            {
+                if (normalizedStatus == "Approved")
+                {
+                    return Conflict(new
+                    {
+                        success = false,
+                        message = "The customer must accept the quotation before it can be approved."
+                    });
+                }
+
+                // Only allow progression through the review workflow, or cancellation.
+                var validTransition =
+                    (quotation.Status == "Pending" &&
+                     (normalizedStatus == "Pending" || normalizedStatus == "Under Review" ||
+                      normalizedStatus == "Rejected" || normalizedStatus == "Cancelled")) ||
+                    (quotation.Status == "Under Review" &&
+                     (normalizedStatus == "Under Review" || normalizedStatus == "Quoted" ||
+                      normalizedStatus == "Rejected" || normalizedStatus == "Cancelled")) ||
+                    (quotation.Status == "Quoted" &&
+                     (normalizedStatus == "Quoted" || normalizedStatus == "Cancelled"));
+
+                if (!validTransition)
+                {
+                    return Conflict(new
+                    {
+                        success = false,
+                        message = "This status change is not permitted for the quotation's current status."
+                    });
+                }
+
+                quotation.Status = normalizedStatus;
+                quotation.ManagerNotes = string.IsNullOrWhiteSpace(request.ManagerNotes)
+                    ? null : request.ManagerNotes.Trim();
+                quotation.QuotedAmount = normalizedStatus == "Quoted"
+                    ? request.QuotedAmount : quotation.QuotedAmount;
+            }
+            else
+            {
+                return Conflict(new
+                {
+                    success = false,
+                    message = "The customer decision is not recognized. Review was not saved."
+                });
+            }
 
             quotation.ReviewedByEmployeeID = employeeId;
-
             quotation.ReviewedAtUtc = DateTime.UtcNow;
 
             await _context.SaveChangesAsync();
@@ -367,7 +446,9 @@ namespace QAClothingFactory.API.Controllers
                 status = quotation.Status,
                 quotedAmount = quotation.QuotedAmount,
                 reviewedByEmployeeID = quotation.ReviewedByEmployeeID,
-                reviewedAtUtc = quotation.ReviewedAtUtc
+                reviewedAtUtc = quotation.ReviewedAtUtc,
+                customerDecision = quotation.CustomerDecision,
+                customerDecisionAtUtc = quotation.CustomerDecisionAtUtc
             });
         }
 
