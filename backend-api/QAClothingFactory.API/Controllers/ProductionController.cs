@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -848,7 +848,7 @@ namespace QAClothingFactory.API.Controllers
             // ====================================================
 
             var batchNumber =
-                request.BatchNumber.Trim();
+                request.BatchNumber?.Trim() ?? string.Empty;
 
 
             var shift =
@@ -964,6 +964,37 @@ namespace QAClothingFactory.API.Controllers
                         )
                 );
 
+
+            // ====================================================
+            // VALIDATE TARGET AND PRODUCED QUANTITIES
+            // ====================================================
+
+            if (request.TargetQuantity <= 0)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Target quantity must be greater than zero."
+                });
+            }
+
+            if (request.QuantityProduced < 0)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Quantity produced cannot be negative."
+                });
+            }
+
+            if (request.QuantityDefective.HasValue && request.QuantityDefective.Value < 0)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Defective quantity cannot be negative."
+                });
+            }
 
             // ====================================================
             // VALIDATE DEFECTIVE QUANTITY
@@ -1187,7 +1218,8 @@ namespace QAClothingFactory.API.Controllers
                     QualityNotes =
                         null,
 
-                    RecordedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+                    RecordedAt =
+                        DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
 
                     StartTime =
                         request.StartTime,
@@ -1314,6 +1346,19 @@ namespace QAClothingFactory.API.Controllers
                 );
             }
 
+
+            // ====================================================
+            // VALIDATE TARGET QUANTITY
+            // ====================================================
+
+            if (request.TargetQuantity <= 0)
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "Target quantity must be greater than zero."
+                });
+            }
 
             // ====================================================
             // VALIDATE QUANTITY PRODUCED
