@@ -239,7 +239,7 @@ namespace QAClothingFactory.API.Controllers
                 ReorderLevel = request.ReorderLevel,
                 UnitCost = request.UnitCost,
                 SupplierInfo = CleanOptionalText(request.SupplierInfo),
-                LastUpdated = DateTime.UtcNow,
+                LastUpdated = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
                 UpdatedBy = employee.EmployeeID
             };
 
@@ -619,7 +619,7 @@ namespace QAClothingFactory.API.Controllers
                     }
 
                     material.CurrentStock = newStock;
-                    material.LastUpdated = DateTime.UtcNow;
+                    material.LastUpdated = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
                     material.UpdatedBy = employee.EmployeeID;
 
                     if (
@@ -895,3 +895,4 @@ namespace QAClothingFactory.API.Controllers
     }
 
 }
+
