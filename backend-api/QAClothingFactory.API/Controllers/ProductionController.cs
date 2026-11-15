@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -1187,8 +1187,7 @@ namespace QAClothingFactory.API.Controllers
                     QualityNotes =
                         null,
 
-                    RecordedAt =
-                        DateTime.UtcNow,
+                    RecordedAt = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
 
                     StartTime =
                         request.StartTime,
