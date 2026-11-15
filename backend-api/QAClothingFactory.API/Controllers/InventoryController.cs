@@ -696,7 +696,7 @@ namespace QAClothingFactory.API.Controllers
                         CleanOptionalText(request.ReferenceNumber),
                     Notes =
                         CleanOptionalText(request.Notes),
-                    TransactionDate = DateTime.UtcNow,
+                    TransactionDate = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
                     PerformedBy = employee.EmployeeID
                 };
 
