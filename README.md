@@ -308,7 +308,7 @@ Potential future improvements include:
 •	Cloud deployment enhancements
 
 
-Project Team
+## Project Team
 The QA Clothing Factory Management System was successfully designed and developed by SA Stellar Solutions as part of a Work Integrated Learning (WIL) programme. The project was completed through collaborative effort, with each team member contributing specialised skills throughout the Software Development Life Cycle (SDLC).
 Team Members and Roles
 Team Member	Role	Responsibility
@@ -319,7 +319,7 @@ Brian Mlambo	Frontend and Backend Developer	Responsible for developing core syst
 Sibusiso Mhlongo	Frontend and Backend Developer	Assisted in the development of both frontend and backend components, implemented business logic, supported database integration, conducted testing, and contributed to system optimisation.
 
 
-Collaborative Contributions
+## Collaborative Contributions
 As a team, SA Stellar Solutions participated in:
 •	Project planning and management
 •	Requirements elicitation and analysis
@@ -338,7 +338,7 @@ As a team, SA Stellar Solutions participated in:
 
 The combination of these contributions enabled the successful delivery of a multi-platform Clothing Factory Management System that addresses the operational and administrative requirements of a modern clothing manufacturing business.
 
-Conclusion
+## Conclusion
 The QA Clothing Factory Management System demonstrates the successful development of an integrated multi-platform business solution. Through the combination of a customer-facing website, mobile application, and administrative web application, the project delivers an efficient and scalable approach to managing quotation requests, customer information, and clothing factory operations.
 This project reflects the practical application of software engineering principles, teamwork, problem-solving, and modern development practices acquired throughout the Work Integrated Learning programme.
 
@@ -351,7 +351,7 @@ SA Stellar Solutions
 Work Integrated Learning (WIL) Project
 Academic Year: 2026
 
-Screenshots and System Demonstration
+## Screenshots and System Demonstration
 Customer Website
 
 
@@ -410,7 +410,7 @@ Figure 7: Reporting Dashboard
 
 
 
-Google Playstore Publishing
+# Google Playstore Publishing
 
 <img width="1920" height="1018" alt="aab-file" src="https://github.com/user-attachments/assets/e15cf9b2-f5eb-4668-bb9b-7710faff3c71" />
 
