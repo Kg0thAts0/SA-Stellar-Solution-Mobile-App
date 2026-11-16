@@ -1,4 +1,4 @@
-using System.Security.Claims;
+﻿using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -458,205 +458,173 @@ namespace QAClothingFactory.API.Controllers
         [HttpPut("inspections/{batchId:int}")]
         public async Task<IActionResult> UpdateInspection(
             int batchId,
-            [FromBody] QualityInspectionRequest request
-        )
+            [FromBody] QualityInspectionRequest request)
         {
-            var productionBatch =
-                await _context
-                    .ProductionBatches
-                    .FirstOrDefaultAsync(
-                        batch =>
-                            batch.BatchID == batchId
-                    );
+            if (request == null)
+                return BadRequest(new { success = false, message = "Inspection details are required." });
 
-            if (productionBatch == null)
+            if (batchId <= 0)
+                return BadRequest(new { success = false, message = "Invalid batch ID." });
+
+            var status = request.QualityStatus?.Trim();
+            if (!string.Equals(status, "Approved", StringComparison.OrdinalIgnoreCase) &&
+                !string.Equals(status, "Rejected", StringComparison.OrdinalIgnoreCase))
+                return BadRequest(new { success = false, message = "Quality status must be Approved or Rejected." });
+
+            status = string.Equals(status, "Approved", StringComparison.OrdinalIgnoreCase)
+                ? "Approved" : "Rejected";
+            var notes = request.QualityNotes?.Trim();
+
+            if (status == "Rejected" && string.IsNullOrWhiteSpace(notes))
+                return BadRequest(new { success = false, message = "Quality notes are required when rejecting a production batch." });
+
+            if (!int.TryParse(User.FindFirstValue(ClaimTypes.NameIdentifier), out var employeeId))
+                return Unauthorized(new { success = false, message = "Unable to identify the authenticated employee." });
+
+            var authorized = await _context.Employees.AnyAsync(e =>
+                e.EmployeeID == employeeId &&
+                (e.Role == "QualityController" || e.Role == "Admin") &&
+                e.EmployeeStatus == "Active");
+            if (!authorized)
+                return StatusCode(403, new { success = false, message = "An active Quality Controller or Admin is required." });
+
+            // SERIALIZABLE protects concurrent approvals and concurrent inventory receipts.
+            // Requires the unique filtered index supplied in the companion SQL file.
+            await using var transaction = await _context.Database.BeginTransactionAsync(
+                System.Data.IsolationLevel.Serializable);
+            try
             {
-                return NotFound(
-                    new
+                var batch = await _context.ProductionBatches
+                    .FirstOrDefaultAsync(b => b.BatchID == batchId);
+                if (batch == null)
+                    return NotFound(new { success = false, message = "Production batch was not found." });
+
+                var reference = $"QC-BATCH-{batch.BatchID}";
+                var existingReceipt = await _context.InventoryTransactions
+                    .AnyAsync(t => t.ReferenceNumber == reference &&
+                                   t.TransactionType == "Receipt");
+
+                // Already approved before this integration? Do not silently backfill:
+                // first reconcile legacy stock movements to avoid double counting.
+                if (batch.QualityStatus == "Approved" && !existingReceipt)
+                    return Conflict(new
                     {
                         success = false,
+                        message = "This batch was approved before automatic inventory receipts were enabled. Reconcile and backfill it separately; approval cannot be repeated."
+                    });
 
-                        message =
-                            "Production batch was not found."
-                    }
-                );
-            }
+                if (batch.QualityStatus == "Approved" && status == "Approved" && existingReceipt)
+                    return Ok(new
+                    {
+                        success = true,
+                        message = "Batch was already approved and received. No duplicate receipt created.",
+                        inspection = new { batch.BatchID, batch.BatchNumber, batch.QualityStatus }
+                    });
 
+                if (existingReceipt)
+                    return Conflict(new
+                    {
+                        success = false,
+                        message = "This batch already has an inventory receipt. Reversal or quality status changes require a separate audited workflow."
+                    });
 
-            // ========================================================
-            // VALIDATE QUALITY STATUS
-            // ========================================================
+                if (batch.QualityStatus == "Rejected" && status == "Approved")
+                    return Conflict(new
+                    {
+                        success = false,
+                        message = "A rejected batch requires a separate documented reinspection before approval."
+                    });
 
-            var qualityStatus =
-                request.QualityStatus?.Trim()
-                ?? string.Empty;
+                if (batch.QualityStatus == "Approved")
+                    return Conflict(new
+                    {
+                        success = false,
+                        message = "An approved batch cannot be changed without an audited reversal."
+                    });
 
-            var allowedStatuses =
-                new[]
+                if (status == "Approved")
                 {
-                    "Approved",
-                    "Rejected"
-                };
+                    var defective = batch.QuantityDefective ?? 0m;
+                    var accepted = batch.QuantityProduced - defective;
+                    if (batch.QuantityProduced <= 0 || defective < 0 ||
+                        defective > batch.QuantityProduced || accepted <= 0)
+                        return BadRequest(new
+                        {
+                            success = false,
+                            message = "Approved batches must have a positive accepted quantity and valid defect counts."
+                        });
+                    if (batch.TargetQuantity > 0 && batch.QuantityProduced > batch.TargetQuantity)
+                        return BadRequest(new
+                        {
+                            success = false,
+                            message = "Produced quantity exceeds target quantity. Correct production records first."
+                        });
 
-            if (!allowedStatuses.Contains(
-                    qualityStatus,
-                    StringComparer.OrdinalIgnoreCase))
-            {
-                return BadRequest(
-                    new
+                    var product = await _context.FinishedGoods
+                        .FirstOrDefaultAsync(p => p.ProductID == batch.ProductID);
+                    if (product == null)
+                        return Conflict(new { success = false, message = "Finished-good product not found." });
+
+                    product.CurrentStock += accepted;
+                    _context.InventoryTransactions.Add(new QAClothingFactory.API.Models.InventoryTransaction
                     {
-                        success = false,
+                        MaterialID = null,
+                        ProductID = product.ProductID,
+                        TransactionType = "Receipt",
+                        Quantity = accepted,
+                        UnitCost = null,
+                        ReferenceNumber = reference,
+                        Notes = $"Automatic QC receipt for production batch {batch.BatchNumber}.",
+                        TransactionDate = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
+                        PerformedBy = employeeId
+                    });
+                }
 
-                        message =
-                            "Quality status must be Approved or Rejected."
-                    }
-                );
-            }
+                batch.QualityStatus = status;
+                batch.QualityCheckedBy = employeeId;
+                batch.QualityCheckDate = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
+                batch.QualityNotes = string.IsNullOrWhiteSpace(notes) ? null : notes;
 
-            qualityStatus =
-                allowedStatuses.First(
-                    allowed =>
-                        allowed.Equals(
-                            qualityStatus,
-                            StringComparison.OrdinalIgnoreCase
-                        )
-                );
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
 
-
-            // ========================================================
-            // VALIDATE QUALITY NOTES
-            // ========================================================
-
-            var qualityNotes =
-                request.QualityNotes?.Trim();
-
-            if (
-                qualityStatus == "Rejected" &&
-                string.IsNullOrWhiteSpace(qualityNotes)
-            )
-            {
-                return BadRequest(
-                    new
-                    {
-                        success = false,
-
-                        message =
-                            "Quality notes are required when rejecting a production batch."
-                    }
-                );
-            }
-
-
-            // ========================================================
-            // GET LOGGED-IN QUALITY CONTROLLER
-            // ========================================================
-
-            var employeeIdValue =
-                User.FindFirstValue(
-                    ClaimTypes.NameIdentifier
-                );
-
-            if (!int.TryParse(
-                    employeeIdValue,
-                    out var employeeId))
-            {
-                return Unauthorized(
-                    new
-                    {
-                        success = false,
-
-                        message =
-                            "Unable to identify the authenticated employee."
-                    }
-                );
-            }
-
-
-            // ========================================================
-            // VERIFY EMPLOYEE
-            // ========================================================
-
-            var qualityControllerExists =
-                await _context
-                    .Employees
-                    .AnyAsync(
-                        employee =>
-                            employee.EmployeeID == employeeId &&
-                            (
-                                employee.Role ==
-                                    "QualityController" ||
-                                employee.Role ==
-                                    "Admin"
-                            ) &&
-                            employee.EmployeeStatus ==
-                                "Active"
-                    );
-
-            if (!qualityControllerExists)
-            {
-                return Unauthorized(
-                    new
-                    {
-                        success = false,
-
-                        message =
-                            "The authenticated employee is not an active Quality Controller."
-                    }
-                );
-            }
-
-
-            // ========================================================
-            // UPDATE QUALITY INFORMATION
-            // ========================================================
-
-            productionBatch.QualityStatus =
-                qualityStatus;
-
-            productionBatch.QualityCheckedBy =
-                employeeId;
-
-            productionBatch.QualityCheckDate =
-                DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
-
-            productionBatch.QualityNotes =
-                string.IsNullOrWhiteSpace(qualityNotes)
-                    ? null
-                    : qualityNotes;
-
-
-            // ========================================================
-            // SAVE
-            // ========================================================
-
-            await _context
-                .SaveChangesAsync();
-
-
-            return Ok(
-                new
+                return Ok(new
                 {
                     success = true,
-
-                    message =
-                        qualityStatus == "Approved"
-                            ? "Production batch approved successfully."
-                            : "Production batch rejected successfully.",
-
+                    message = status == "Approved"
+                        ? "Production batch approved and accepted goods received into inventory."
+                        : "Production batch rejected successfully.",
                     inspection = new
                     {
-                        productionBatch.BatchID,
-                        productionBatch.BatchNumber,
-
-                        QualityStatus =
-                            productionBatch.QualityStatus,
-
-                        productionBatch.QualityCheckedBy,
-                        productionBatch.QualityCheckDate,
-                        productionBatch.QualityNotes
+                        batch.BatchID,
+                        batch.BatchNumber,
+                        batch.QualityStatus,
+                        batch.QualityCheckedBy,
+                        batch.QualityCheckDate,
+                        batch.QualityNotes
                     }
-                }
-            );
+                });
+            }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+                when (ex.InnerException is Npgsql.PostgresException pg &&
+                      (pg.SqlState == "23505" || pg.SqlState == "40001"))
+            {
+                await transaction.RollbackAsync();
+                return Conflict(new
+                {
+                    success = false,
+                    message = "Duplicate receipt or concurrent update detected. Refresh and retry."
+                });
+            }
+            catch (Npgsql.PostgresException ex) when (ex.SqlState == "40001" || ex.SqlState == "23505")
+            {
+                await transaction.RollbackAsync();
+                return Conflict(new
+                {
+                    success = false,
+                    message = "Concurrent update or duplicate receipt detected. Refresh and retry."
+                });
+            }
         }
 
 

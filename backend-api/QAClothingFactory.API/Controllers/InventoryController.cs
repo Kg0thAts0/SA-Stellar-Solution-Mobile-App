@@ -567,6 +567,19 @@ namespace QAClothingFactory.API.Controllers
                 });
             }
 
+            // QC-BATCH references are reserved for receipts created by Quality Control.
+            // Reject them for ALL manual movements, regardless of letter case.
+            var referenceNumber = CleanOptionalText(request.ReferenceNumber);
+            if (referenceNumber != null &&
+                referenceNumber.StartsWith("QC-BATCH-", StringComparison.OrdinalIgnoreCase))
+            {
+                return BadRequest(new
+                {
+                    success = false,
+                    message = "QC-BATCH references are reserved for automatic Quality Control receipts."
+                });
+            }
+
             var employee = await GetCurrentEmployeeAsync();
 
             if (employee == null)
@@ -692,8 +705,7 @@ namespace QAClothingFactory.API.Controllers
                     ),
                     Quantity = request.Quantity,
                     UnitCost = unitCost,
-                    ReferenceNumber =
-                        CleanOptionalText(request.ReferenceNumber),
+                    ReferenceNumber = referenceNumber,
                     Notes =
                         CleanOptionalText(request.Notes),
                     TransactionDate = DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified),
@@ -895,4 +907,3 @@ namespace QAClothingFactory.API.Controllers
     }
 
 }
-
