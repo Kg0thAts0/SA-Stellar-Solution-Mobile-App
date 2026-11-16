@@ -431,6 +431,7 @@ Figure 11: Release
 <img width="1920" height="1018" alt="aab-file-1" src="https://github.com/user-attachments/assets/537c8b53-3bb6-4d0d-9fde-c7b62765d609" />
 
 Figure 12: App release aab 
+
 Release Notes
 Version 2.0 – Final WIL Release
 Release Date: 16 November 2026
