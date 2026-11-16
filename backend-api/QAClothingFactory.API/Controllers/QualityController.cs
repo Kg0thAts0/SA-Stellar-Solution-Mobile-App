@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -617,7 +617,7 @@ namespace QAClothingFactory.API.Controllers
                 employeeId;
 
             productionBatch.QualityCheckDate =
-                DateTime.UtcNow;
+                DateTime.SpecifyKind(DateTime.UtcNow, DateTimeKind.Unspecified);
 
             productionBatch.QualityNotes =
                 string.IsNullOrWhiteSpace(qualityNotes)
