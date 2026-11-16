@@ -433,7 +433,7 @@ Figure 11: Release
 Figure 12: App release aab 
 
 ---
-##Link for Demonstration Video
+## Link for Demonstration Video
 
 Release Notes
 Version 2.0 – Final WIL Release
